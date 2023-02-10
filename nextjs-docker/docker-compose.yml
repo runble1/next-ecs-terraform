@@ -1,0 +1,19 @@
+version: '3'
+services:
+  next:
+    build:
+      context: ./
+      target: runner
+    volumes:
+      - .:/app
+    command: npm run dev
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - WATCHPACK_POLLING=true
+    networks:
+      - laravel_sail
+networks:
+  laravel_sail:
+    external: true
