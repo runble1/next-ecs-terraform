@@ -28,4 +28,6 @@ module "ecs" {
   source       = "../../modules/ecs"
   cluster_name = "next-cluster"
   vpc_id       = module.network.vpc_id
+  subnet_1a_id = module.network.subnet_public_1a_id
+  subnet_1c_id = module.network.subnet_public_1c_id
 }
