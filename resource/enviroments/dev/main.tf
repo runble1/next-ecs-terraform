@@ -1,6 +1,6 @@
 module "ecr" {
-  source = "../../modules/ecr"
-  name   = "next-docker"
+  source        = "../../modules/ecr"
+  name          = "next-docker"
   holding_count = 5
 }
 
@@ -14,7 +14,6 @@ module "network" {
   nat_gateway_name         = "${var.env}-next-nat-gw"
   route_table_public_name  = "${var.env}-next-public"
   route_table_private_name = "${var.env}-next-private"
-  security_group_name      = "${var.env}-next-sg"
 }
 
 module "alb" {
@@ -30,4 +29,5 @@ module "ecs" {
   vpc_id       = module.network.vpc_id
   subnet_1a_id = module.network.subnet_public_1a_id
   subnet_1c_id = module.network.subnet_public_1c_id
+  alb_target_group_arn = module.alb.target_group_arn
 }

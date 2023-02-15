@@ -1,5 +1,7 @@
 # Usage
 
+## ローカルでDocker実行
+
 ## コンテナレジストリの構築
 ```
 cd resource/enviroments/dev
@@ -26,15 +28,16 @@ docker image push ${AWS_ACCOUNT_ID}.dkr.ecr.ap-northeast-1.amazonaws.com/next-do
 terraform apply --target=module.network
 ```
 
+## 3 ECS
+```
+terraform apply --target=module.ecs
+```
+
 ## 2 ALB
 ```
 terraform apply --target=module.alb
 ```
 
-## 3 ECS
-```
-terraform apply --target=module.ecs
-```
 
 
 aws cloudformation deploy \

@@ -6,7 +6,6 @@ variable "elastic_ip_name" {}
 variable "nat_gateway_name" {}
 variable "route_table_public_name" {}
 variable "route_table_private_name" {}
-variable "security_group_name" {}
 
 # ====================
 # VPC
@@ -122,27 +121,5 @@ resource "aws_route" "private_0" {
 resource "aws_route_table_association" "private_0" {
   subnet_id      = aws_subnet.private_0.id
   route_table_id = aws_route_table.private_0.id
-}
-
-
-# ====================
-# Security Group
-# ====================
-resource "aws_security_group" "slackbot_sg" {
-  vpc_id = aws_vpc.main.id
-  name   = "slackbot_sg"
-  tags = {
-    Name = var.security_group_name
-  }
-}
-
-# アウトバウンドルール(全開放)
-resource "aws_security_group_rule" "out_all" {
-  security_group_id = aws_security_group.slackbot_sg.id
-  type              = "egress"
-  cidr_blocks       = ["0.0.0.0/0"]
-  from_port         = 0
-  to_port           = 0
-  protocol          = "-1"
 }
 
