@@ -31,3 +31,15 @@ module "ecs" {
   subnet_1c_id = module.network.subnet_public_1c_id
   alb_target_group_arn = module.alb.target_group_arn
 }
+
+module "codepipeline" {
+  source       = "../../modules/codepipeline"
+  env = "dev"
+  prefix = "nextjs"
+  branch_name = "main"
+  repository_name = module.ecr.repository_name
+}
+
+module "cloudwatch" {
+  source       = "../../modules/cloudwatch"
+}

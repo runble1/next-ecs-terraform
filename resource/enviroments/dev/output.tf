@@ -5,3 +5,7 @@ output "repository_url" {
 output "public_dns" {
   value = module.alb.public_dns
 }
+
+output "codecommit_url" {
+  value = module.codepipeline.codecommit_url
+}
