@@ -9,6 +9,10 @@ provider "aws" {
 }
 
 terraform {
+  required_version = "1.3.8"
+  required_providers {
+     aws = "4.54.0"
+  }
   backend "s3" {
     profile = "terraform"
     region  = "ap-northeast-1"
