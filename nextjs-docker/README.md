@@ -1,13 +1,15 @@
 # Next.js + ECS Fargate
 
-## Built
+## Usage
+
+### Built
 
 ```
 docker build -t nextjs-docker .
 docker run -p 3000:3000 nextjs-docker
 ```
 
-## Run
+### Run
 
 ```
 docker compose up -d
@@ -19,9 +21,15 @@ docker exec -it nextjs-docker-next-1 sh
 ```
 
 ```
-docker compose down down
+docker compose down
 ```
 
-## Deploy on AWS
+### Git
+
 ```
+git add .
+git commit -m "first commit"
+git remote add origin https://git-codecommit.ap-northeast-1.amazonaws.com/v1/repos/next-docker
+git branch -M main
+git push --set-upstream origin main
 ```
