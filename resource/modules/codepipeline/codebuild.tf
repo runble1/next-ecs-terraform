@@ -1,7 +1,7 @@
-resource "aws_codebuild_project" "secrets_check" {
-  name          = "${var.prefix}-${var.env}-secrets-check"
+resource "aws_codebuild_project" "dockle_check" {
+  name          = "${var.prefix}-${var.env}-dockle-check2"
   build_timeout = "60"
-  service_role  = aws_iam_role.secrets_check.arn
+  service_role  = aws_iam_role.dockle_check.arn
 
   artifacts {
     packaging = "NONE"
@@ -26,36 +26,32 @@ resource "aws_codebuild_project" "secrets_check" {
     }
 
     environment_variable {
-      name  = "CODE_REPO_NAME"
-      value = aws_codecommit_repository.this.id
-    }
-
-    environment_variable {
-      name  = "CODE_REPO_URL"
-      value = aws_codecommit_repository.this.clone_url_http
+      name  = "IMAGE_REPO_NAME"
+      value = var.repository_name
     }
   }
 
   source {
     type            = "CODEPIPELINE"
     git_clone_depth = 0
-    buildspec       = file("../../modules/codepipeline/buildspec_secrets_check.yml")
+    buildspec       = file("../../modules/codepipeline/buildspec_dockle_check.yml")
   }
 
   logs_config {
     cloudwatch_logs {
       status     = "ENABLED"
-      group_name = aws_cloudwatch_log_group.secrets_check.name
+      group_name = aws_cloudwatch_log_group.dockle_check.name
     }
 
     s3_logs {
       status = "DISABLED"
     }
   }
+
 }
 
-resource "aws_codebuild_project" "snyk_check" {
-  name          = "${var.prefix}-${var.env}-snyk-check"
+resource "aws_codebuild_project" "secrets_check" {
+  name          = "${var.prefix}-${var.env}-secrets-check"
   build_timeout = "60"
   service_role  = aws_iam_role.secrets_check.arn
 

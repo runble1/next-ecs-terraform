@@ -8,7 +8,6 @@ resource "aws_cloudwatch_log_group" "secrets_check" {
   retention_in_days = 30
 }
 
-
 resource "aws_cloudwatch_event_rule" "this" {
   name = "${var.prefix}-${var.env}-repo-state-change"
   event_pattern = jsonencode({

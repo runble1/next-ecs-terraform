@@ -8,6 +8,24 @@ resource "aws_codepipeline" "this" {
   }
 
   stage {
+    name = "Source"
+    action {
+      provider = "CodeCommit"
+      category = "Source"
+      configuration = {
+        BranchName           = var.branch_name
+        PollForSourceChanges = "false"
+        RepositoryName       = aws_codecommit_repository.this.id
+      }
+      name             = aws_codecommit_repository.this.id
+      owner            = "AWS"
+      version          = "1"
+      output_artifacts = ["source_output"]
+      role_arn         = aws_iam_role.codepipeline_codecommit.arn
+    }
+  }
+
+  stage {
     name = "Secrets_Check"
     action {
       category = "Build"
@@ -20,6 +38,23 @@ resource "aws_codepipeline" "this" {
       owner           = "AWS"
       version         = "1"
       role_arn        = aws_iam_role.codepipeline_codebuild.arn
+    }
+  }
+
+  stage {
+    name = "Dockle_Check"
+    action {
+      category = "Build"
+      configuration = {
+        ProjectName = aws_codebuild_project.dockle_check.name
+      }
+      input_artifacts  = ["source_output"]
+      name             = aws_codebuild_project.dockle_check.name
+      provider         = "CodeBuild"
+      owner            = "AWS"
+      version          = "1"
+      role_arn         = aws_iam_role.codepipeline_codebuild.arn
+      output_artifacts = ["dockle_check_output"]
     }
   }
 }

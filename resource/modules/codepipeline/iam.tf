@@ -199,6 +199,62 @@ resource "aws_iam_role_policy" "build" {
 #
 # CodeBuild
 #
+resource "aws_iam_role" "dockle_check" {
+  name = "${var.prefix}-${var.env}-dockle-check"
+  assume_role_policy = jsonencode({
+    Version : "2012-10-17",
+    Statement : [
+      {
+        Action : "sts:AssumeRole",
+        Principal : {
+          Service : "codebuild.amazonaws.com"
+        },
+        Effect : "Allow",
+        Sid : ""
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy" "dockle_check" {
+  name = "${var.prefix}-${var.env}-dockle-check"
+  role = aws_iam_role.dockle_check.id
+  policy = jsonencode({
+    Version : "2012-10-17",
+    Statement : [
+      {
+        Action : [
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents"
+        ],
+        Resource : "*",
+        Effect : "Allow"
+      },
+      {
+        Action : [
+          "logs:CreateLogGroup"
+        ],
+        Resource : "*",
+        Effect : "Allow"
+      },
+      {
+        "Action" : [
+          "ecr:BatchCheckLayerAvailability",
+          "ecr:CompleteLayerUpload",
+          "ecr:GetAuthorizationToken",
+          "ecr:InitiateLayerUpload",
+          "ecr:PutImage",
+          "ecr:UploadLayerPart",
+          "ecr:GetDownloadUrlForLayer",
+          "ecr:BatchGetImage"
+        ],
+        "Resource" : "*",
+        "Effect" : "Allow"
+      }
+    ]
+  })
+}
 
 resource "aws_iam_role" "secrets_check" {
   name = "${var.prefix}-${var.env}-secrets-check"
