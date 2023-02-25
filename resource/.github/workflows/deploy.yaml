@@ -1,0 +1,23 @@
+name: oidc-sample
+
+on:
+  push:
+  workflow_dispatch:
+
+env:
+  # AssumeRoleされるロールのARN
+  IAM_ROLE: arn:aws:iam::657885203613:role/github_actions_open_id_connect_example_role
+
+jobs:
+  test-job:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: ${{ env.IAM_ROLE }}
+          role-session-name: github_actions_open_id_connect_example
+          aws-region: ap-northeast-1
+      - run: aws sts get-caller-identity
