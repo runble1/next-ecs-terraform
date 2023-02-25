@@ -39,7 +39,7 @@ module "codepipeline" {
   branch_name = "main"
   repository_name = module.ecr.repository_name
 }
-
+/*
 module "cloudwatch" {
   source       = "../../modules/cloudwatch"
-}
+}*/
