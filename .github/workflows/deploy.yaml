@@ -6,7 +6,7 @@ on:
 
 env:
   # AssumeRoleされるロールのARN
-  IAM_ROLE: arn:aws:iam::657885203613:role/github_actions_open_id_connect_example_role
+  IAM_ROLE: arn:aws:iam::657885203613:role/github-actions-open-id-connect-role
 
 jobs:
   test-job:
