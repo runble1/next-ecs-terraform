@@ -24,19 +24,19 @@ module "alb" {
 }
 
 module "ecs" {
-  source       = "../../modules/ecs"
-  cluster_name = "next-cluster"
-  vpc_id       = module.network.vpc_id
-  subnet_1a_id = module.network.subnet_public_1a_id
-  subnet_1c_id = module.network.subnet_public_1c_id
+  source               = "../../modules/ecs"
+  cluster_name         = "next-cluster"
+  vpc_id               = module.network.vpc_id
+  subnet_1a_id         = module.network.subnet_public_1a_id
+  subnet_1c_id         = module.network.subnet_public_1c_id
   alb_target_group_arn = module.alb.target_group_arn
 }
 
 module "codepipeline" {
-  source       = "../../modules/codepipeline"
-  env = "dev"
-  prefix = "nextjs"
-  branch_name = "main"
+  source          = "../../modules/codepipeline"
+  env             = "dev"
+  prefix          = "nextjs"
+  branch_name     = "main"
   repository_name = module.ecr.repository_name
 }
 /*
