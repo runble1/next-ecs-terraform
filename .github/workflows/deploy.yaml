@@ -27,7 +27,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Working Directory
-        run: cd ./next-ecs-terraform/resource/envs/dev && pwd
+        run: cd ./resource/envs/dev && pwd
 
       - name: Terraform Format
         id: fmt
