@@ -14,7 +14,7 @@ terraform {
     aws = "4.54.0"
   }
   backend "s3" {
-    profile = "terraform"
+    #profile = "terraform"
     region  = "ap-northeast-1"
     bucket  = "657885203613-tfstate"
     key     = "zenn-next/next"
