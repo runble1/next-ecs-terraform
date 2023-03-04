@@ -1,0 +1,362 @@
+name: Terraform PR check
+
+on:
+  pull_request:
+    types: [synchronize, opened, ready_for_review]
+    branches:
+      - main
+
+env:
+  AWS_REGION: ap-northeast-1
+  AWS_ROLE_DURATION_SECONDS: 900
+  AWS_ROLE_SESSION_NAME: <<REPO_NAME>>-${{ github.job }}-${{ github.run_id }}-${{ github.run_attempt }}
+  AWS_TERRAFORM_PLAN_ROLE: ${{ secrets.AWS_TERRAFORM_PLAN_ROLE }}
+  AWS_TFMIGRATE_PLAN_ROLE: ${{ secrets.AWS_TFMIGRATE_PLAN_ROLE }}
+
+permissions:
+  contents: write
+  id-token: write
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: terraform-job
+
+jobs:
+  get-labels:
+    name: Get PR Labels
+    runs-on: ubuntu-latest
+
+    outputs:
+      labels: ${{ steps.get_labels.outputs.labels }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Get labels
+        id: get_labels
+        uses: ./.github/workflows/composite/get-labels
+        with:
+          token: ${{ secrets.GIT_PERSONAL_TOKEN }}
+
+  fmt:
+    if: ${{ !contains(needs.get-labels.outputs.labels, 'skip ci') && startsWith(github.head_ref, 'renovate') == false }}
+    needs: [get-labels]
+    name: Run terraform fmt
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          token: ${{ secrets.GIT_PERSONAL_TOKEN }}
+
+      - name: Install aqua
+        uses: ./.github/workflows/composite/aqua-installer
+
+      - name: Check terraform fmt
+        run: terraform fmt -check -recursive
+
+      - name: Terraform fmt
+        if: failure()
+        run: terraform fmt -recursive
+
+      - name: Auto commit
+        if: always()
+        uses: EndBug/add-and-commit@v9
+        with:
+          author_name: "github-actions[bot]"
+          author_email: "github-actions[bot]@users.noreply.github.com"
+          committer_name: "github-actions[bot]"
+          committer_email: "github-actions[bot]@users.noreply.github.com"
+          message: "chore: terraform fmt"
+
+  terraform-docs:
+    if: ${{ !contains(needs.get-labels.outputs.labels, 'skip ci') }}
+    needs: [fmt]
+    name: Generate Terraform Docs
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          token: ${{ secrets.GIT_PERSONAL_TOKEN }}
+
+      - name: Render terraform docs and push changes back to PR
+        id: terraform_docs
+        uses: terraform-docs/gh-actions@v1.0.0
+        with:
+          working-dir: modules/common,modules/ecs-service,modules/alb,modules/ci,modules/lambda
+          output-file: README.md
+          output-method: inject
+          git-push: "true"
+          git-push-user-email: github-actions[bot]@users.noreply.github.com
+          git-push-user-name: github-actions[bot]
+          git-commit-message: "terraform-docs: automated action"
+
+      - name: Cancel workflow
+        if: steps.terraform_docs.outputs.num_changed != '0'
+        uses: andymckay/cancel-action@0.2
+        with:
+          token: ${{ secrets.GIT_PERSONAL_TOKEN }}
+
+  set-matrix:
+    if: ${{ !contains(needs.get-labels.outputs.labels, 'skip ci') && !contains(needs.get-labels.outputs.labels, 'tfmigrate') }}
+    needs: [terraform-docs]
+    name: Set matrix job
+    runs-on: ubuntu-latest
+
+    outputs:
+      workdir: ${{ steps.set_matrix.outputs.matrix-workdir }}
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+
+      - name: Set matrix
+        id: set_matrix
+        uses: ponkio-o/select-target-action@v0.2.3
+        with:
+          token: ${{ secrets.GIT_PERSONAL_TOKEN }}
+
+  plan:
+    if: startsWith(github.head_ref, 'renovate') == false
+    needs: [set-matrix]
+    name: Plan
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        workdir: ${{fromJson(needs.set-matrix.outputs.workdir)}}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install aqua
+        uses: ./.github/workflows/composite/aqua-installer
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1.7.0
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          role-duration-seconds: ${{ env.AWS_ROLE_DURATION_SECONDS }}
+          role-to-assume: ${{ env.AWS_TERRAFORM_PLAN_ROLE }}
+          role-session-name: ${{ env.AWS_ROLE_SESSION_NAME }}
+
+      - name: Terraform init
+        working-directory: ${{ matrix.workdir }}
+        id: init
+        run: |
+          if [ -e terraform.tfvars.encrypt ]; then
+            aws kms decrypt --key-id $KMS_KEY_ID --ciphertext-blob fileb://<(base64 -d ./terraform.tfvars.encrypt) --output text --query Plaintext | base64 -d >> terraform.tfvars
+          fi
+          terraform init
+        env:
+          KMS_KEY_ID: ${{ secrets.KMS_KEY_ID }}
+          AWS_REGION: ${{ env.AWS_REGION }}
+
+      - name: Terraform validate
+        working-directory: ${{ matrix.workdir }}
+        id: validate
+        run: github-comment exec -k validate -var "work_dir:$WORK_DIR" -- terraform validate -no-color
+        env:
+          GITHUB_TOKEN: ${{ secrets.GIT_PERSONAL_TOKEN }}
+          WORK_DIR: ${{ matrix.workdir }}
+
+      - name: Terraform plan
+        working-directory: ${{ matrix.workdir }}
+        id: plan
+        run: |
+          tfcmt -var "target:${WORK_DIR}" plan -patch -- terraform plan -input=false -no-color
+        env:
+          GITHUB_TOKEN: ${{ secrets.GIT_PERSONAL_TOKEN }}
+          WORK_DIR: ${{ matrix.workdir }}
+
+  tflint:
+    if: startsWith(github.head_ref, 'renovate') == false
+    needs: [set-matrix]
+    name: Run tflint
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        workdir: ${{fromJson(needs.set-matrix.outputs.workdir)}}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install aqua
+        uses: ./.github/workflows/composite/aqua-installer
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1.7.0
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          role-duration-seconds: ${{ env.AWS_ROLE_DURATION_SECONDS }}
+          role-to-assume: ${{ env.AWS_TERRAFORM_PLAN_ROLE }}
+          role-session-name: ${{ env.AWS_ROLE_SESSION_NAME }}
+
+      - name: Terraform init
+        working-directory: ${{ matrix.workdir }}
+        run: |
+          if [ -e terraform.tfvars.encrypt ]; then
+            aws kms decrypt --key-id $KMS_KEY_ID --ciphertext-blob fileb://<(base64 -d ./terraform.tfvars.encrypt) --output text --query Plaintext | base64 -d >> terraform.tfvars
+          fi
+          terraform init
+        env:
+          KMS_KEY_ID: ${{ secrets.KMS_KEY_ID }}
+          AWS_REGION: ${{ env.AWS_REGION }}
+
+      - name: tflint
+        working-directory: ${{ matrix.workdir }}
+        run: |
+          tflint --config ${GITHUB_WORKSPACE}/.tflint.hcl --init
+          # If use modules in Terraform, read the contents of modules.json and execute it recursively
+          if [ -e .terraform/modules ]; then
+              cat .terraform/modules/modules.json | jq -r '[.Modules[].Dir] | unique | .[]' | while read line; do \
+              tflint --config $GITHUB_WORKSPACE/.tflint.hcl --format=checkstyle $line | \
+              reviewdog -f=checkstyle \
+                        -name="tflint" \
+                        -reporter=github-pr-review \
+                        -level=error \
+                        -filter-mode=nofilter \
+                        -fail-on-error=true; done
+          else
+              tflint --config $GITHUB_WORKSPACE/.tflint.hcl --format=checkstyle | \
+              reviewdog -f=checkstyle \
+                        -name="tflint" \
+                        -reporter=github-pr-review \
+                        -level=error \
+                        -filter-mode=nofilter \
+                        -fail-on-error=true
+          fi
+        env:
+          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GIT_PERSONAL_TOKEN }}
+
+  terraform-renovate:
+    name: terraform version up
+    if: startsWith(github.head_ref, 'renovate/terraform')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout default branch
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.base.ref }}
+          # This is the setting to trigger the CI on commits added by the GitHub Actions.
+          # See. https://github.com/EndBug/add-and-commit#the-commit-from-the-action-is-not-triggering-ci
+          token: ${{ secrets.GIT_PERSONAL_TOKEN }}
+
+      - name: Checkout renovate branch
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          # This is the setting to trigger the CI on commits added by the GitHub Actions.
+          # See. https://github.com/EndBug/add-and-commit#the-commit-from-the-action-is-not-triggering-ci
+          token: ${{ secrets.GIT_PERSONAL_TOKEN }}
+
+      - name: Install aqua
+        uses: ./.github/workflows/composite/aqua-installer
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1.7.0
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          role-duration-seconds: ${{ env.AWS_ROLE_DURATION_SECONDS }}
+          role-to-assume: ${{ env.AWS_TERRAFORM_PLAN_ROLE }}
+          role-session-name: ${{ env.AWS_ROLE_SESSION_NAME }}
+
+      - name: Terraform init
+        run: ./script/renovate_tfinit.sh
+        env:
+          KMS_KEY_ID: ${{ secrets.KMS_KEY_ID }}
+          AWS_REGION: ${{ env.AWS_REGION }}
+          RENOVATE_BRANCH: ${{ github.event.pull_request.head.ref }}
+          DEFAULT_BRANCH: ${{ github.event.pull_request.base.ref }}
+
+      - name: Push files
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GIT_PERSONAL_TOKEN }}
+          branch: ${{ github.head_ref }}
+
+      - name: Terraform plan
+        run: ./script/renovate_tfplan.sh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GIT_PERSONAL_TOKEN }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+
+  tfmigrate:
+    if: contains(needs.get-labels.outputs.labels, 'tfmigrate')
+    needs: [get-labels]
+    name: Run tfmigrate plan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install aqua
+        uses: ./.github/workflows/composite/aqua-installer
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1.7.0
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          role-duration-seconds: ${{ env.AWS_ROLE_DURATION_SECONDS }}
+          role-to-assume: ${{ env.AWS_TFMIGRATE_PLAN_ROLE }}
+          role-session-name: ${{ env.AWS_ROLE_SESSION_NAME }}
+
+      - name: Terraform init
+        run: |
+          working_dirs=$(jq -c '.["target:all"]'  .deploy_target.json | jq -r .[])
+          for workdir in ${working_dirs[@]}
+          do
+              cd ${workdir}
+              if [ -e terraform.tfvars.encrypt ]; then
+                aws kms decrypt --key-id $KMS_KEY_ID --ciphertext-blob fileb://<(base64 -d ./terraform.tfvars.encrypt) --output text --query Plaintext | base64 -d >> terraform.tfvars
+              fi
+              terraform init
+              cd $(git rev-parse --show-toplevel)
+          done
+        env:
+          KMS_KEY_ID: ${{ secrets.KMS_KEY_ID }}
+          AWS_REGION: ${{ env.AWS_REGION }}
+
+      - name: tfmigrate plan
+        run: |
+          github-comment exec -k tfmigrate-plan -- tfmigrate plan
+        env:
+          GITHUB_TOKEN: ${{ secrets.GIT_PERSONAL_TOKEN }}
+
+  terraform-pr-check:
+    name: status check
+    needs:
+      [
+        set-matrix,
+        fmt,
+        plan,
+        tflint,
+        terraform-renovate,
+        tfmigrate,
+        terraform-docs,
+      ]
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Fail
+        if: (needs.set-matrix.result == 'failure' || needs.fmt.result == 'failure' || needs.plan.result == 'failure' || needs.tflint.result == 'failure' || needs.terraform-renovate.result == 'failure' || needs.tfmigrate.result == 'failure' || needs.terraform-docs.result == 'failure')
+        run: |
+          exit 1
+
+      - name: Pass
+        run: echo "OK"
