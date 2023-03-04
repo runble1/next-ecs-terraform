@@ -23,6 +23,7 @@ resource "aws_s3_bucket_policy" "artifacts_store" {
             aws_iam_role.codepipeline_codecommit.arn,
             aws_iam_role.dockle_check.arn,
             aws_iam_role.secrets_check.arn,
+            aws_iam_role.trivy_check.arn,
         ] },
         Action : [
           "s3:Get*",
@@ -38,6 +39,7 @@ resource "aws_s3_bucket_policy" "artifacts_store" {
             aws_iam_role.codepipeline_codecommit.arn,
             aws_iam_role.dockle_check.arn,
             aws_iam_role.secrets_check.arn,
+            aws_iam_role.trivy_check.arn,
         ] },
         Action : "s3:ListBucket",
         Resource : aws_s3_bucket.artifacts_store.arn,

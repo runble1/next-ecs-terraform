@@ -26,47 +26,41 @@ resource "aws_codepipeline" "this" {
   }
 
   stage {
-    name = "Secrets_Check"
+    name = "Build"
     action {
+      name     = "Secrets_Check"
       category = "Build"
       configuration = {
         ProjectName = aws_codebuild_project.secrets_check.name
       }
       input_artifacts = ["source_output"]
-      name            = aws_codebuild_project.secrets_check.name
       provider        = "CodeBuild"
       owner           = "AWS"
       version         = "1"
       role_arn        = aws_iam_role.codepipeline_codebuild.arn
     }
-  }
 
-  stage {
-    name = "Dockle_Check"
     action {
+      name     = "Dockle_Check"
       category = "Build"
       configuration = {
         ProjectName = aws_codebuild_project.dockle_check.name
       }
       input_artifacts  = ["source_output"]
-      name             = aws_codebuild_project.dockle_check.name
       provider         = "CodeBuild"
       owner            = "AWS"
       version          = "1"
       role_arn         = aws_iam_role.codepipeline_codebuild.arn
       output_artifacts = ["dockle_check_output"]
     }
-  }
 
-  stage {
-    name = "Trivy_Check"
     action {
+      name     = "Trivy_Check"
       category = "Build"
       configuration = {
         ProjectName = aws_codebuild_project.trivy_check.name
       }
       input_artifacts  = ["source_output"]
-      name             = aws_codebuild_project.trivy_check.name
       provider         = "CodeBuild"
       owner            = "AWS"
       version          = "1"

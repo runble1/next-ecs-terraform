@@ -8,8 +8,8 @@ phases:
       - "apt update"
       - "apt install rpm -y"
       - "pip3 install boto3"
-      - "wget https://github.com/aquasecurity/trivy/releases/download/v0.1.6/trivy_0.1.6_Linux-64bit.deb"
-      - "dpkg -i trivy_0.1.6_Linux-64bit.deb"
+      - "wget https://github.com/aquasecurity/trivy/releases/download/v0.38.1/trivy_0.38.1_Linux-64bit.deb"
+      - "dpkg -i trivy_0.38.1_Linux-64bit.deb"
       - trivy --version
   pre_build:
     commands:
@@ -19,12 +19,14 @@ phases:
       - docker build -t ${REPOSITORY_URI}:${IMAGE_TAG} .
   build:
     commands:
-      - trivy -f json -o results.json --exit-code 0 --severity HIGH,MEDIUM,LOW --quiet --auto-refresh ${REPOSITORY_URI}:${IMAGE_TAG}
-      - trivy -f json -o results.json --exit-code 1 --severity HIGH,CRITICAL --quiet --auto-refresh ${REPOSITORY_URI}:${IMAGE_TAG}
-      - docker tag $docker_img_name:$docker_tag $ecr_repo:latest
-      - docker push $ecr_repo:latest
+      #- trivy -f json -o results.json --exit-code 0 --severity HIGH,MEDIUM,LOW --quiet --auto-refresh ${REPOSITORY_URI}:${IMAGE_TAG}
+      #- trivy -f json -o results.json --exit-code 1 --severity HIGH,CRITICAL --quiet --auto-refresh ${REPOSITORY_URI}:${IMAGE_TAG}
+      - trivy image ${REPOSITORY_URI}:${IMAGE_TAG} -f json -o results.json --exit-code 1 --severity HIGH,CRITICAL --quiet
   post_build:
     commands:
-      - echo trivy scan completed on `date`
-      - python3 sechub_parser.py
-      - echo Report Sent to Security Hub on `date`
+      - echo trivy scan results S3 upload on `date`
+      - cat results.json
+artifacts:
+  files:
+    - imagedefinitions.json
+    - results.json

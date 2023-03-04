@@ -143,6 +143,7 @@ resource "aws_iam_role_policy" "build" {
         Resource : [
           aws_codebuild_project.dockle_check.arn,
           aws_codebuild_project.secrets_check.arn,
+          aws_codebuild_project.trivy_check.arn,
         ],
         Effect : "Allow"
       },
@@ -180,6 +181,66 @@ resource "aws_iam_role" "dockle_check" {
 resource "aws_iam_role_policy" "dockle_check" {
   name = "${var.prefix}-${var.env}-dockle-check"
   role = aws_iam_role.dockle_check.id
+  policy = jsonencode({
+    Version : "2012-10-17",
+    Statement : [
+      {
+        Action : [
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents"
+        ],
+        Resource : "*",
+        Effect : "Allow"
+      },
+      {
+        Action : [
+          "logs:CreateLogGroup"
+        ],
+        Resource : "*",
+        Effect : "Allow"
+      },
+      {
+        "Action" : [
+          "ecr:BatchCheckLayerAvailability",
+          "ecr:CompleteLayerUpload",
+          "ecr:GetAuthorizationToken",
+          "ecr:InitiateLayerUpload",
+          "ecr:PutImage",
+          "ecr:UploadLayerPart",
+          "ecr:GetDownloadUrlForLayer",
+          "ecr:BatchGetImage"
+        ],
+        "Resource" : "*",
+        "Effect" : "Allow"
+      }
+    ]
+  })
+}
+
+#
+# CodeBuild Trivy
+#
+resource "aws_iam_role" "trivy_check" {
+  name = "${var.prefix}-${var.env}-trivy-check"
+  assume_role_policy = jsonencode({
+    Version : "2012-10-17",
+    Statement : [
+      {
+        Action : "sts:AssumeRole",
+        Principal : {
+          Service : "codebuild.amazonaws.com"
+        },
+        Effect : "Allow",
+        Sid : ""
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy" "trivy_check" {
+  name = "${var.prefix}-${var.env}-trivy-check"
+  role = aws_iam_role.trivy_check.id
   policy = jsonencode({
     Version : "2012-10-17",
     Statement : [
