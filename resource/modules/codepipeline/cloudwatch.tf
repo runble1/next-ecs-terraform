@@ -8,8 +8,8 @@ resource "aws_cloudwatch_log_group" "secrets_check" {
   retention_in_days = 30
 }
 
-resource "aws_cloudwatch_log_group" "snyk_check" {
-  name              = "/aws/codebuild/${var.prefix}-${var.env}-snyk-check3"
+resource "aws_cloudwatch_log_group" "trivy_check" {
+  name              = "/aws/codebuild/${var.prefix}-${var.env}-trivy-check3"
   retention_in_days = 30
 }
 

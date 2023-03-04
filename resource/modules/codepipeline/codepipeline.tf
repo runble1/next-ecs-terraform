@@ -57,4 +57,21 @@ resource "aws_codepipeline" "this" {
       output_artifacts = ["dockle_check_output"]
     }
   }
+
+  stage {
+    name = "Trivy_Check"
+    action {
+      category = "Build"
+      configuration = {
+        ProjectName = aws_codebuild_project.trivy_check.name
+      }
+      input_artifacts  = ["source_output"]
+      name             = aws_codebuild_project.trivy_check.name
+      provider         = "CodeBuild"
+      owner            = "AWS"
+      version          = "1"
+      role_arn         = aws_iam_role.codepipeline_codebuild.arn
+      output_artifacts = ["trivy_check_output"]
+    }
+  }
 }

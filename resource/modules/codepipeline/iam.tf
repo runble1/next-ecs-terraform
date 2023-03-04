@@ -158,7 +158,7 @@ resource "aws_iam_role_policy" "build" {
 }
 
 #
-# CodeBuild
+# CodeBuild Dockle
 #
 resource "aws_iam_role" "dockle_check" {
   name = "${var.prefix}-${var.env}-dockle-check"
@@ -217,6 +217,9 @@ resource "aws_iam_role_policy" "dockle_check" {
   })
 }
 
+#
+# CodeBuild Secrets
+#
 resource "aws_iam_role" "secrets_check" {
   name = "${var.prefix}-${var.env}-secrets-check"
   assume_role_policy = jsonencode({
