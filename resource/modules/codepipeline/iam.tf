@@ -1,43 +1,4 @@
 #
-# IAM
-#
-resource "aws_iam_role" "cloudwatch_events" {
-  name = "${var.prefix}-${var.env}-event"
-  assume_role_policy = jsonencode({
-    Version : "2012-10-17",
-    Statement : [
-      {
-        Action : "sts:AssumeRole",
-        Principal : {
-          Service : "events.amazonaws.com"
-        },
-        Effect : "Allow",
-        Sid : ""
-      }
-    ]
-  })
-}
-
-resource "aws_iam_role_policy" "cloudwatch_events_codepipeline" {
-  name = "${var.prefix}-${var.env}-event-pipeline"
-  role = aws_iam_role.cloudwatch_events.id
-  policy = jsonencode({
-    Version : "2012-10-17",
-    Statement : [
-      {
-        Action : [
-          "codepipeline:StartPipelineExecution"
-        ],
-        Resource : [
-          "${aws_codepipeline.this.arn}"
-        ],
-        Effect : "Allow"
-      }
-    ]
-  })
-}
-
-#
 # CodePipeline
 #
 resource "aws_iam_role" "codepipeline" {
@@ -99,7 +60,7 @@ resource "aws_iam_role" "codepipeline_codecommit" {
 }
 
 resource "aws_iam_role_policy" "repository" {
-  name = "${var.prefix}-${var.env}-repository"
+  name = "${var.prefix}-${var.env}-repository1"
   role = aws_iam_role.codepipeline_codecommit.id
 
   policy = jsonencode({
@@ -113,7 +74,7 @@ resource "aws_iam_role_policy" "repository" {
           "codecommit:GetUploadArchiveStatus",
           "codecommit:CancelUploadArchive"
         ],
-        Resource : aws_codecommit_repository.this.arn,
+        Resource : var.codecommit_arn,
         Effect : "Allow"
       }
     ]
@@ -300,6 +261,45 @@ resource "aws_iam_role_policy" "secrets_check" {
           "codecommit:GitPull"
         ],
         Resource : "*",
+        Effect : "Allow"
+      }
+    ]
+  })
+}
+
+#
+# for CloudWatch
+#
+resource "aws_iam_role" "cloudwatch_events" {
+  name = "${var.prefix}-${var.env}-event"
+  assume_role_policy = jsonencode({
+    Version : "2012-10-17",
+    Statement : [
+      {
+        Action : "sts:AssumeRole",
+        Principal : {
+          Service : "events.amazonaws.com"
+        },
+        Effect : "Allow",
+        Sid : ""
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy" "cloudwatch_events_codepipeline" {
+  name = "${var.prefix}-${var.env}-event-pipeline"
+  role = aws_iam_role.cloudwatch_events.id
+  policy = jsonencode({
+    Version : "2012-10-17",
+    Statement : [
+      {
+        Action : [
+          "codepipeline:StartPipelineExecution"
+        ],
+        Resource : [
+          "${aws_codepipeline.this.arn}"
+        ],
         Effect : "Allow"
       }
     ]

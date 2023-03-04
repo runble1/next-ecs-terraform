@@ -15,9 +15,9 @@ resource "aws_codepipeline" "this" {
       configuration = {
         BranchName           = var.branch_name
         PollForSourceChanges = "false"
-        RepositoryName       = aws_codecommit_repository.this.id
+        RepositoryName       = var.repository_name
       }
-      name             = aws_codecommit_repository.this.id
+      name             = var.repository_name
       owner            = "AWS"
       version          = "1"
       output_artifacts = ["source_output"]

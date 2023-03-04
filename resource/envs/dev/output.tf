@@ -7,5 +7,5 @@ output "public_dns" {
 }
 
 output "codecommit_url" {
-  value = module.codepipeline.codecommit_url
+  value = module.codecommit.clone_url_http
 }

@@ -32,6 +32,8 @@ phases:
     commands:
       - echo Build started on `date`
       - echo Building the Docker image...
+      - echo ${REPOSITORY_URI}
+      - echo ${IMAGE_TAG}
       - docker build -t ${REPOSITORY_URI}:${IMAGE_TAG} .
       - echo Build completed on `date`
       - echo Dockle Scan started on `date`

@@ -1,29 +1,57 @@
-# Usage
+# Infrastructure by Terraform
 
-## Reference
+## Deploy
+aws-vault only
+```
+aws-vault exec jitsudan
+terraform init
+terraform apply
+```
+aws-vualt + Docker
+```
+aws-vault exec jitsudan
+docker compose up
+docker compose run --rm terraform init
+```
+
+## セキュリティチェック
+```
+Dockle : 
+git-secrets : 
+Trivy : 
+```
+
+## パイプライン
 https://qiita.com/okubot55/items/6cb2dccdd00dfb0b3335
 
-## ローカルでDocker実行
-
-## コンテナレジストリの構築
+### 0. コンテナレジストリとコードリポジトリ作成
 ```
 cd resource/enviroments/dev
 terraform apply --target=module.ecr
+terraform apply --target=module.codecommit
 ```
 
-## レジストリへ認証
+### レジストリへ認証
 ```
+aws-vault exec jitsudan
 AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query 'Account' --output text)
 aws ecr --region ap-northeast-1 get-login-password | docker login --username AWS --password-stdin https://${AWS_ACCOUNT_ID}.dkr.ecr.ap-northeast-1.amazonaws.com/
 ```
 
-## レジストリへイメージ登録
+### レジストリへイメージ登録
 ```
 cd nextjs-docker
+aws-vault exec jitsudan
 GIT_COMMIT_ID=$(git log --format="%H" -n 1)
 docker image build -t nextjs-docker:"${GIT_COMMIT_ID}" .
 docker image tag nextjs-docker:"${GIT_COMMIT_ID}" ${AWS_ACCOUNT_ID}.dkr.ecr.ap-northeast-1.amazonaws.com/next-docker:"${GIT_COMMIT_ID}"
 docker image push ${AWS_ACCOUNT_ID}.dkr.ecr.ap-northeast-1.amazonaws.com/next-docker:"${GIT_COMMIT_ID}"
+```
+
+### CodeCommitへ登録
+```
+git remote add codecommit https://git-codecommit.ap-northeast-1.amazonaws.com/v1/repos/next-docker
+git push -u codecommit main
 ```
 
 ## 1 Network
@@ -41,70 +69,8 @@ terraform apply --target=module.ecs
 terraform apply --target=module.alb
 ```
 
+## 3 Pipeline
 
-
-aws cloudformation deploy \
---stack-name sbctr-network \
---template-file network_step2.yml
-
-## 2 Backend
-aws cloudformation deploy \
---stack-name sbcntr-backend-stack \
---template-file backend.cf.yml \
---capabilities CAPABILITY_NAMED_IAM
-
-## 3 Frontend
-aws cloudformation deploy \
---stack-name sbcntr-frontend-stack \
---template-file frontend.cf.yml
-
-## 4 Aurora
-aws cloudformation deploy \
---stack-name sbctr-db \
---template-file db.yml
-
-## 5 Bastion(humidai)
-aws cloudformation deploy \
---stack-name sbctr-ec2 \
---template-file ec2.yml
-
-## 5.5 踏み台準備 (EC2 Instance Connect & )
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.34.0/install.sh | bash
-. ~/.nvm/nvm.sh
-nvm install v14.16.1
-nvm alias default v14.16.1
-npm i -g yarn
-
-git clone https://github.com/uma-arai/sbcntr-frontend.git
-cd sbcntr-frontend
-yarn install --pure-lockfile --roduction
-npx blitz -v
-
-yum install docker
-
-## 6 db 準備
-mysql -h -u admin -p 
-
-CREATE USER sbcntruser@'%' IDENTIFIED BY 'sbcntrEncP';
-GRANT ALL ON sbcntrapp.* TO sbcntruser@'%' WITH GRANT OPTION;
-
-CREATE USER migrate@'%' IDENTIFIED BY 'sbcntrMigrate';
-GRANT ALL ON sbcntrapp.* TO migrate@'%' WITH GRANT OPTION;
-GRANT ALL ON `prisma_migrate_shadow_db%`.* TO migrate@'%' WITH GRANT OPTION;
-
-SELECT Host, User FROM mysql.user;
-
-mysql -h sbcntr-db.cluster-cwr5ao9wqdny.ap-northeast-1.rds.amazonaws.com -u sbcntruser -p
-mysql -h sbcntr-db.cluster-cwr5ao9wqdny.ap-northeast-1.rds.amazonaws.com -u migrate -p
-
-## 7 テーブル作成、データ投入
-export DB_USERNAME=migrate
-export DB_PASSWORD=sbcntrMigrate
-export DB_HOST=sbcntr-db.cluster-cwr5ao9wqdny.ap-northeast-1.rds.amazonaws.com
-export DB_NAME=sbcntrapp
-
-npm run migrate:dev
-npm run seed
 
 
 ## 8 Secret Manager
@@ -200,5 +166,3 @@ docker image push ${AWS_ACCOUNT_ID}.dkr.ecr.ap-northeast-1.amazonaws.com/sbcntr-
 aws cloudformation deploy \
 --stack-name sbctr-bastion \
 --template-file bastion.yml
-
-## Trivy

@@ -18,17 +18,19 @@ resource "aws_lb" "for_webserver" {
     var.subnet_1a_id,
     var.subnet_1c_id
   ]
+
+  drop_invalid_header_fields = true
 }
 
 # ====================
 # Target Group
 # ====================
 resource "aws_lb_target_group" "for_webserver" {
-  name     = "for-webserver-lb-tg"
-  vpc_id   = var.vpc_id
+  name   = "for-webserver-lb-tg"
+  vpc_id = var.vpc_id
 
-  port     = 3000
-  protocol = "HTTP"
+  port        = 3000
+  protocol    = "HTTP"
   target_type = "ip"
 
   # コンテナへの死活監視設定
@@ -86,7 +88,7 @@ resource "aws_security_group" "alb" {
 }
 
 resource "aws_security_group_rule" "alb_http" {
-  from_port         = 80 //80から
+  from_port         = 80   //80から
   to_port           = 3000 //80までアクセス許可
   protocol          = "tcp"
   security_group_id = aws_security_group.alb.id

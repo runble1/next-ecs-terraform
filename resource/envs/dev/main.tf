@@ -4,6 +4,11 @@ module "ecr" {
   holding_count = 5
 }
 
+module "codecommit" {
+  source          = "../../modules/codecommit"
+  repository_name = "next-docker"
+}
+
 module "network" {
   source                   = "../../modules/network"
   vpc_name                 = "${var.env}-next-vpc"
@@ -37,8 +42,12 @@ module "codepipeline" {
   env             = "dev"
   prefix          = "nextjs"
   branch_name     = "main"
-  repository_name = module.ecr.repository_name
+  repository_name = "next-docker"
+  repository_id   = module.codecommit.repository_id
+  clone_url_http  = module.codecommit.clone_url_http
+  codecommit_arn  = module.codecommit.arn
 }
+
 /*
 module "cloudwatch" {
   source       = "../../modules/cloudwatch"

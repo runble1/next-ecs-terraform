@@ -79,12 +79,12 @@ resource "aws_codebuild_project" "secrets_check" {
 
     environment_variable {
       name  = "CODE_REPO_NAME"
-      value = aws_codecommit_repository.this.id
+      value = var.repository_name
     }
 
     environment_variable {
       name  = "CODE_REPO_URL"
-      value = aws_codecommit_repository.this.clone_url_http
+      value = var.clone_url_http
     }
   }
 

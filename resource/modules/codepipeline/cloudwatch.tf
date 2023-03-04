@@ -20,7 +20,7 @@ resource "aws_cloudwatch_event_rule" "this" {
       "CodeCommit Repository State Change"
     ],
     resources : [
-      aws_codecommit_repository.this.arn
+      var.codecommit_arn
     ],
     source : [
       "aws.codecommit"
