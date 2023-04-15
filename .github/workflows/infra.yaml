@@ -45,6 +45,9 @@ jobs:
         with:
           sarif_file: "trivy-results.sarif"
 
+      - name: Check
+        run: cat trivy-results.sarif
+
   deploy-infra:
     #needs: security_check
     runs-on: ubuntu-latest
