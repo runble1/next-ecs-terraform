@@ -5,6 +5,7 @@ locals {
 # ====================
 # Config Rules
 # ====================
+/*
 resource "aws_config_config_rule" "restricted_ssh" {
   name        = local.rule_identifier
   description = "Checks whether security groups that are in use disallow unrestricted incoming SSH traffic."
@@ -15,4 +16,4 @@ resource "aws_config_config_rule" "restricted_ssh" {
   }
 
   depends_on = [aws_config_configuration_recorder.recorder]
-}
+}*/

@@ -7,6 +7,6 @@ variable "slack_workspace_id" {
   description = "slack workspace id"
 }
 
-variable "slack_channel_id" {
+variable "slack_channel_id_aws" {
   description = "slack channel id"
 }

@@ -11,7 +11,7 @@ resource "awscc_chatbot_slack_channel_configuration" "chatbot" {
   user_role_required = false
 
   sns_topic_arns = [
-    var.sns_topic_configrules_arn,
+    var.sns_topic_securityhub_arn,
     var.sns_topic_guardduty_arn,
     var.sns_topic_inspector_arn,
     var.sns_topic_iamaccessanalyzer_arn
