@@ -5,6 +5,6 @@ variable "slack_channel_id" {}
 variable "sns_topic_configrules_arn" {}
 variable "sns_topic_guardduty_arn" {}
 variable "sns_topic_inspector_arn" {}
-variable "sns_topic_sns_topic_iamaccessanalyzer_arn" {}
+variable "sns_topic_iamaccessanalyzer_arn" {}
 
 data "aws_caller_identity" "self" {}

@@ -26,13 +26,19 @@ module "iam_access_analyzer" {
   name             = local.service
 }
 
+module "securityhub" {
+  source           = "../../modules/securityhub"
+  security_service = "securityhub"
+  name             = local.service
+}
+
 module "chatbot" {
-  source                                    = "../../modules/chatbot"
-  name                                      = local.service
-  slack_workspace_id                        = var.slack_workspace_id
-  slack_channel_id                          = var.slack_channel_id
-  sns_topic_configrules_arn                 = module.config.sns_topic_configrules_arn
-  sns_topic_guardduty_arn                   = module.guardduty.sns_topic_guardduty_arn
-  sns_topic_inspector_arn                   = module.inspector.sns_topic_inspector_arn
-  sns_topic_sns_topic_iamaccessanalyzer_arn = module.iam_access_analyzer.sns_topic_sns_topic_iamaccessanalyzer_arn
+  source                          = "../../modules/chatbot"
+  name                            = local.service
+  slack_workspace_id              = var.slack_workspace_id
+  slack_channel_id                = var.slack_channel_id
+  sns_topic_configrules_arn       = module.config.sns_topic_configrules_arn
+  sns_topic_guardduty_arn         = module.guardduty.sns_topic_guardduty_arn
+  sns_topic_inspector_arn         = module.inspector.sns_topic_inspector_arn
+  sns_topic_iamaccessanalyzer_arn = module.iam_access_analyzer.sns_topic_iamaccessanalyzer_arn
 }
