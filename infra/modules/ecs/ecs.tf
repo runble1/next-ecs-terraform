@@ -188,6 +188,15 @@ resource "aws_security_group_rule" "ecs_from_alb" {
   source_security_group_id = var.alb_sg_id
 }
 
+resource "aws_security_group_rule" "ecs_from_alb" {
+  from_port                = 0
+  to_port                  = 0
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.ecs.id
+  type                     = "ingress"
+  source_security_group_id = var.alb_sg_id
+}
+
 ####################################################
 # Systems Manger Parameter Store
 ####################################################

@@ -20,7 +20,7 @@ module "chatbot" {
   name               = "${var.env}-slackbot-error"
   aws_sns_topic_arn  = module.aws_cloudwatch.sns_topic_arn
   slack_workspace_id = var.slack_workspace_id
-  slack_channel_id   = var.slack_channel_id
+  slack_channel_id   = var.slack_channel_id_gh
 }
 
 # ====================

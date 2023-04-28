@@ -1,0 +1,46 @@
+name: Snyk IaC
+
+on:
+  push:
+    branches:
+      - main
+
+# 連続pushした場合、前のジョブをキャンセルする
+#concurrency:
+#  group: ${{ github.workflow }}-${{ github.ref }}
+#  cancel-in-progress: true
+
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read # for actions/checkout to fetch code
+      security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
+      actions: read # only required for a private repository by github/codeql-action/upload-sarif to get the Action run status
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Run Snyk to check for IaC
+        uses: snyk/actions/iac@master
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          file: modules
+          args: --severity-threshold=high
+          sarif: true
+
+      - name: Debug - Check SARIF file existence
+        run: |
+          ls -la
+          if [ -f "snyk.sarif" ]; then
+            echo "snyk.sarif file exists."
+          else
+            echo "snyk.sarif file does not exist."
+          fi
+
+      - name: Upload result to GitHub Code Scanning
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: snyk.sarif
