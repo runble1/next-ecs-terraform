@@ -11,17 +11,19 @@ GITHUB_API_BASE_URL = "https://api.github.com"
 
 
 def lambda_handler(event, context):
-    print("Event: ", event)
+    print("Event:")
+    print(event)
     headers = event["headers"]
 
-    # Check for X-GitHub-Event header
-    if 'X-GitHub-Event' not in headers:
+    # Check for x-github-event header
+    if 'x-github-event' not in headers:
+        print("NOT GITHUB EVENT")
         return {
             "statusCode": 400,
-            "body": "X-GitHub-Event header not found."
+            "body": "x-github-event header not found."
         }
 
-    if headers['X-GitHub-Event'] == "code_scanning_alert":
+    if headers['x-github-event'] == "code_scanning_alert":
         body = json.loads(event["body"])
 
         repo = body["repository"]["full_name"]
@@ -31,8 +33,8 @@ def lambda_handler(event, context):
         message = ""
         if body["action"] == "created" and body["alert"]["state"] == "open":
             message = f"Code Scanning Alert *Opened*: *{rule}* in {repo}\nURL: {url}"
-        elif body["action"] == "closed" and body["alert"]["state"] == "closed":
-            message = f"Code Scanning Alert *Closed*: *{rule}* in {repo}\nURL: {url}"
+        elif body["action"] == "fixed" and body["alert"]["state"] == "fixed":  # trivyの場合？
+            message = f"Code Scanning Alert *Fixed*: *{rule}* in {repo}\nURL: {url}"
 
         headers = {
             "Content-Type": "application/json; charset=UTF-8",
