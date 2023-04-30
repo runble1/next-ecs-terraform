@@ -1,27 +1,16 @@
 # Next.js + ECS Fargate
 
-## Github
-project -> Workflow
-```
-Item closed
-Pull request merged
-Item added to project <- 追加
-Auto added to project <- 追加
-```
+## .github
+何かする用の Github Actions
 
-下記より Github Apps をインストール
-```
-https://github.com/settings/apps/
-```
+## gh_codescan
+Github Apps 用の Lambda
 
-## Usage
+## infra
+ECS 用の Terraform、別リポジトリ
 
-## Security
-### Trivy
-```
+## next-docker
+ECS デプロイサンプル用の Next.js
 
-```
-
-### git-secrets
-
-###
+## security
+AWS へのセキュリティ設定

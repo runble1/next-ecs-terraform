@@ -21,10 +21,6 @@ variable "dev_slack_bot_token_aws" {
   description = "Slack Bot Token for AWS Alert"
 }
 
-variable "slack_webhook_url" {
-  description = "Slack Webhook URL"
-}
-
 variable "slack_workspace_id" {
   description = "slack workspace id"
 }

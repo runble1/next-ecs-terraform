@@ -30,16 +30,17 @@ module "chatbot" {
 # ====================
 module "aws_api_gateway" {
   source               = "../../modules/aws_api_gateway"
-  api_gateway_name_aws = "${var.env}-slackbot_aws"
+  api_gateway_name_aws = "${var.env}-github-app"
   env                  = var.env
+  path_part = "githubapp"
 }
 
 module "aws_lambda" {
   depends_on = [module.aws_api_gateway]
 
   source         = "../../modules/aws_lambda"
-  function_name  = "${var.env}-aws_alert_slackbot"
-  log_group_name = "/aws/lambda/${var.env}-aws_alert_slackbot"
+  function_name  = "${var.env}-github-app"
+  log_group_name = "/aws/lambda/${var.env}-github-app"
 
   env     = var.env
   region  = var.region
@@ -54,16 +55,16 @@ module "aws_lambda" {
   aws_apigw_path        = module.aws_api_gateway.aws_apigw_path
   aws_apigw_resource_id = module.aws_api_gateway.aws_apigw_resource_id
 
+  slack_channel_id = var.slack_channel_id_gh
   slack_bot_token   = var.dev_slack_bot_token_aws
-  slack_webhook_url = var.slack_webhook_url
   github_api_token  = var.github_api_token
 }
 
 module "aws_cloudwatch" {
   depends_on        = [module.aws_lambda]
   source            = "../../modules/cloudwatch"
-  function_name     = "${var.env}-aws_alert_slackbot"
-  log_group_name    = "/aws/lambda/${var.env}-aws_alert_slackbot"
+  function_name     = "${var.env}-github-app"
+  log_group_name    = "/aws/lambda/${var.env}-github-app"
   metric_name       = "ErrorCount"
-  metric_name_space = "${var.env}-aws_alert_slackbot-error"
+  metric_name_space = "${var.env}-github-app"
 }

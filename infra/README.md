@@ -1,5 +1,29 @@
 # Infrastructure by Terraform
 
+## Install
+### Github Projects
+project -> Workflow
+```
+Item closed
+Pull request merged
+Item added to project <- 追加
+Auto added to project <- 追加
+```
+
+### Github Apps
+個人アカウントで Github Apps を作成
+```
+https://github.com/settings/apps/
+```
+Github Apps から対象リポジトリへインストール
+```
+https://github.com/settings/apps/test-code-scanning/installations
+```
+リポジトリで Webhook を有効化
+```
+https://github.com/runble1/infra/settings/hooks
+```
+
 ## Deploy
 aws-vault only
 ```
@@ -20,9 +44,6 @@ Dockle :
 git-secrets : 
 Trivy : 
 ```
-
-## パイプライン
-https://qiita.com/okubot55/items/6cb2dccdd00dfb0b3335
 
 ### 0. コンテナレジストリとコードリポジトリ作成
 ```
