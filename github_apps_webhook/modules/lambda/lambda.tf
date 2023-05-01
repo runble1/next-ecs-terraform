@@ -9,24 +9,37 @@ variable "slack_bot_token" {}
 variable "github_api_token" {}
 
 # ====================
-# Archive
+# Build
 # ====================
-data "archive_file" "function_source" {
-  type        = "zip"
-  source_dir  = "../../app"
-  output_path = "../../archive/aws_${var.env}/aws_alert_slackbot.zip"
+resource "null_resource" "build_lambda" {
+  provisioner "local-exec" {
+    command = "cd ../../app && npm install && npm run build"
+  }
+
+  triggers = {
+    always_run = "${timestamp()}"
+  }
 }
 
 # ====================
-#
+# Archive
+# ====================
+data "archive_file" "function_source" {
+  depends_on = [null_resource.build_lambda]
+
+  type        = "zip"
+  source_dir  = "../../app/dist"
+  output_path = "../../archive/aws_${var.env}/github_app_webhook.zip"
+}
+
+# ====================
 # Lambda
-#
 # ====================
 resource "aws_lambda_function" "aws_alert_function" {
   function_name = var.function_name
-  handler       = "lambda.lambda_handler"
+  handler       = "index.handler"
   role          = aws_iam_role.lambda_role.arn
-  runtime       = "python3.8"
+  runtime       = "nodejs18.x"
   timeout       = 10
   kms_key_arn   = aws_kms_key.lambda_key.arn
 
@@ -35,9 +48,9 @@ resource "aws_lambda_function" "aws_alert_function" {
 
   environment {
     variables = {
-      SLACK_CHANNEL_ID            = var.slack_channel_id
-      SLACK_BOT_USER_ACCESS_TOKEN = var.slack_bot_token,
-      GITHUB_API_TOKEN            = var.github_api_token
+      SLACK_CHANNEL_ID       = var.slack_channel_id
+      SLACK_BOT_ACCESS_TOKEN = var.slack_bot_token,
+      GITHUB_API_TOKEN       = var.github_api_token
     }
   }
 
@@ -93,7 +106,7 @@ data "aws_iam_policy_document" "lambda_policy" {
 }
 
 resource "aws_iam_policy" "lambda_policy" {
-  name   = "${var.env}-AWSAlertSlackbotLambdaPolicy2"
+  name   = "${var.env}-AWSAlertSlackbotLambdaPolicy"
   policy = data.aws_iam_policy_document.lambda_policy.json
 }
 
@@ -113,26 +126,24 @@ resource "aws_iam_role_policy_attachment" "lambda_policy_for_APIGateway" {
 }
 
 resource "aws_iam_role" "lambda_role" {
-  name               = "${var.env}-AWSAlertSlackbotLambdaRole2"
+  name               = "${var.env}-AWSAlertSlackbotLambdaRole"
   assume_role_policy = data.aws_iam_policy_document.assume_role.json
 }
 
 # ====================
-#
 # KMS
-#
 # ====================
 resource "aws_kms_key" "lambda_key" {
   description             = "My Lambda Function Customer Master Key"
   enable_key_rotation     = true
   deletion_window_in_days = 7
   tags = {
-    Name = "${var.env}-githubapp2"
+    Name = "${var.env}-githubapp"
   }
 }
 
 resource "aws_kms_alias" "lambda_key_alias" {
-  name          = "alias/${var.function_name}2"
+  name          = "alias/${var.function_name}3"
   target_key_id = aws_kms_key.lambda_key.id
 }
 

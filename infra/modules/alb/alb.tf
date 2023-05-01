@@ -109,8 +109,8 @@ resource "aws_security_group_rule" "alb_http" {
   cidr_blocks       = ["0.0.0.0/0"]
 }
 
-resource "aws_security_group" "alb33" {
-  name   = "${var.env}-${var.service}-alb33-sg"
+resource "aws_security_group" "alb40" {
+  name   = "${var.env}-${var.service}-alb40-sg"
   vpc_id = var.vpc_id
   egress {
     from_port   = 0
@@ -120,6 +120,6 @@ resource "aws_security_group" "alb33" {
   }
 
   tags = {
-    Name = "${var.env}-${var.service}-alb33-sg"
+    Name = "${var.env}-${var.service}-alb40-sg"
   }
 }

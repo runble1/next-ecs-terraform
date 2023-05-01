@@ -21,8 +21,8 @@ module "lambda" {
   account = var.account
 
   slack_channel_id = var.slack_channel_id_gh
-  slack_bot_token   = var.dev_slack_bot_token_aws
-  github_api_token  = var.github_api_token
+  slack_bot_token  = var.dev_slack_bot_token_aws
+  github_api_token = var.github_api_token
 }
 
 module "aws_cloudwatch" {

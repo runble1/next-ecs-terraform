@@ -3,8 +3,8 @@ locals {
 }
 
 module "config" {
-  source           = "../../modules/config"
-  name             = local.service
+  source = "../../modules/config"
+  name   = local.service
 }
 
 module "securityhub" {
