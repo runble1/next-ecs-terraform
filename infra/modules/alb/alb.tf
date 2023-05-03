@@ -153,3 +153,48 @@ resource "aws_security_group" "alb52" {
     Name = "${var.env}-${var.service}-alb52-sg"
   }
 }
+
+resource "aws_security_group" "alb53" {
+  name   = "${var.env}-${var.service}-alb53-sg"
+  vpc_id = var.vpc_id
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "${var.env}-${var.service}-alb53-sg"
+  }
+}
+
+resource "aws_security_group" "alb54" {
+  name   = "${var.env}-${var.service}-alb54-sg"
+  vpc_id = var.vpc_id
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "${var.env}-${var.service}-alb54-sg"
+  }
+}
+
+resource "aws_security_group" "alb55" {
+  name   = "${var.env}-${var.service}-alb55-sg"
+  vpc_id = var.vpc_id
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "${var.env}-${var.service}-alb55-sg"
+  }
+}
