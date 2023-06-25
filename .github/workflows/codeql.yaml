@@ -1,0 +1,34 @@
+name: codeql
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "next-docker/**"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "security/**"
+  workflow_dispatch:
+
+env:
+  # AssumeRoleされるロールのARN
+  IAM_ROLE: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-open-id-connect-role
+  AWS_REGION: ap-northeast-1
+  TF_VAR_slack_channel_id: ${{ secrets.TF_VAR_SLACK_CHANNEL_ID }}
+  TF_VAR_slack_workspace_id: ${{ secrets.TF_VAR_SLACK_WORKSPACE_ID }}
+
+permissions:
+  id-token: write
+
+jobs:
+  security_check:
+    if: ${{ !contains(github.event.head_commit.message, '[skip security]') }}
+    runs-on: ubuntu-20.04
+    permissions:
+      contents: read # for actions/checkout to fetch code
+      security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
+      actions: read # only required for a private repository by github/codeql-action/upload-sarif to get the Action run status
+    steps:
