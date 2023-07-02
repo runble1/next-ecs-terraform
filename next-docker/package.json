@@ -11,8 +11,8 @@
   "dependencies": {
     "@next/font": "13.4.7",
     "@types/node": "18.16.19",
-    "@types/react": "18.0.28",
-    "@types/react-dom": "18.0.11",
+    "@types/react": "18.2.14",
+    "@types/react-dom": "18.2.6",
     "ansi-regex": "^6.0.1",
     "eslint": "8.44.0",
     "eslint-config-next": "13.4.7",
