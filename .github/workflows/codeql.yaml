@@ -26,7 +26,7 @@ permissions:
 jobs:
   codeql:
     # CodeQL runs on ubuntu-latest, windows-latest, and macos-latest
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     permissions:
       # required for all workflows
       security-events: write
@@ -42,9 +42,9 @@ jobs:
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v2
         # Override language selection by uncommenting this and choosing your languages
-        # with:
-        #   languages: go, javascript, csharp, python, cpp, java, ruby
-
+        with:
+          languages: javascript
+      
       # Autobuild attempts to build any compiled languages (C/C++, C#, Go, or Java).
       # If this step fails, then you should remove it and run the build manually (see below).
       - name: Autobuild
