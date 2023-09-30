@@ -1,0 +1,90 @@
+name: Code Scanning to Issues
+
+on:
+  #  code_scanning_alert:
+  #    types:
+  #      - appeared
+  #      - fixed
+  #      - closed
+  workflow_run:
+    workflows: ["Code Scanning", "trivy"]
+    types:
+      - completed
+  workflow_dispatch:
+
+permissions:
+  #actions: read
+  #checks: read
+  #contents: read
+  #issues: write
+  #security-events: read
+  #repository-projects: write
+  actions: write
+  checks: write
+  contents: write
+  deployments: write
+  id-token: write
+  issues: write
+  discussions: write
+  packages: write
+  pages: write
+  pull-requests: write
+  repository-projects: write
+  security-events: write
+  statuses: write
+
+env:
+  PROJECT_NAME: infra-kanban
+  REPO_OWNER: runble1
+  REPO_NAME: infra
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  alert_handling:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install jq
+        run: sudo apt-get install jq
+
+      - name: Get Code Scanning Results
+        id: get_results
+        run: |
+          echo 'RESULTS<<EOF' >> $GITHUB_ENV
+          curl -L -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+                         -H "Accept: application/vnd.github+json" \
+                         -H "X-GitHub-Api-Version: 2022-11-28" \
+                         "https://api.github.com/repos/${{ env.REPO_OWNER}}/${{ env.REPO_NAME }}/code-scanning/alerts?state=open" >> $GITHUB_ENV
+          echo 'EOF' >> $GITHUB_ENV
+
+      - name: Format Code Scanning Results
+        run: |
+          input_data="${{ env.RESULTS }}"
+          if ! echo "$input_data" | jq -e . >/dev/null 2>&1; then
+            echo "Invalid JSON input data:"
+            echo "$input_data"
+            exit 1
+          fi
+          formatted_results=$(echo "$input_data" | jq -r '.[] | "- [ ] Rule: \(.rule.id)\n  - Severity: \(.rule.severity)\n  - Description: \(.rule.description)\n\n"')
+          echo "FORMATTED_RESULTS=$formatted_results" >> "$GITHUB_ENV"
+
+      - name: Create Issue Template
+        run: |
+          # Create the template file with the results
+          echo "---" > issue_template.md
+          echo "title: Code Scanning Results" >> issue_template.md
+          echo "labels: code scanning" >> issue_template.md
+          echo "---" >> issue_template.md
+          echo "Code Scanning Results:" >> issue_template.md
+          echo "$FORMATTED_RESULTS" >> issue_template.md
+
+      - name: Create Issue
+        uses: JasonEtco/create-an-issue@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_TEMPLATE: issue_template.md
+        #with:
+        #  filename: .github/ISSUE_TEMPLATE.md

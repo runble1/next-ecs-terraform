@@ -16,7 +16,7 @@ terraform {
   backend "s3" {
     region  = "ap-northeast-1"
     bucket  = "runble1-tfstate"
-    key     = "dev/security"
+    key     = "next-ecs-terraform/security"
     encrypt = true
   }
 }

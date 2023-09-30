@@ -16,7 +16,7 @@ terraform {
   backend "s3" {
     region  = "ap-northeast-1"
     bucket  = "runble1-tfstate"
-    key     = "dev/github-app-webhook"
+    key     = "next-ecs-terraform/github_apps_webhook"
     encrypt = true
   }
 }

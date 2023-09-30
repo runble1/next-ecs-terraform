@@ -16,7 +16,7 @@ terraform {
   backend "s3" {
     region  = "ap-northeast-1"
     bucket  = "runble1-tfstate"
-    key     = "dev/lambda-github"
+    key     = "next-ecs-terraform/lambda_codescanning"
     encrypt = true
   }
 }
