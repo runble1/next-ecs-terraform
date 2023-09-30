@@ -1,0 +1,132 @@
+name: deploy-infra
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+# 連続pushした場合、前のジョブをキャンセルする
+#concurrency:
+#  group: ${{ github.workflow }}-${{ github.ref }}
+#  cancel-in-progress: true
+
+env:
+  # AssumeRoleされるロールのARN
+  IAM_ROLE: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-open-id-connect-role
+  AWS_REGION: ap-northeast-1
+  ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.ap-northeast-1.amazonaws.com
+  ECR_REPOSITORY: nextjs-github
+
+jobs:
+  security_check:
+    # git commit 時のメッセージに [skip security] が含まれている場合はスキップ
+    if: ${{ !contains(github.event.head_commit.message, '[skip security]') }}
+    permissions:
+      contents: read # for actions/checkout to fetch code
+      security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
+      actions: read # only required for a private repository by github/codeql-action/upload-sarif to get the Action run status
+    runs-on: "ubuntu-20.04"
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Run Trivy vulnerability scanner in IaC mode
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: "config"
+          hide-progress: false
+          format: "sarif"
+          output: "trivy-results.sarif"
+          exit-code: "1"
+          ignore-unfixed: true
+          severity: "CRITICAL"
+          skip-dirs: gh_codescan,security,next-docker
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: "trivy-results.sarif"
+
+      - name: Check
+        run: cat trivy-results.sarif
+
+  deploy-infra:
+    #needs: security_check
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ env.IAM_ROLE }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: AWS Auth
+        run: aws sts get-caller-identity
+
+      #- name: Update image in SSM Parameter Store
+      #  run: |
+      #    aws ssm put-parameter --name "/nextjs-github/image_name" --type "String" --value "${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}" --overwrite
+
+      - name: Terraform Format
+        id: fmt
+        run: terraform fmt -check
+
+      - name: Terraform Init
+        id: init
+        run: terraform init
+        working-directory: envs/dev
+
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate -no-color
+        working-directory: envs/dev
+
+      - name: Terraform Plan
+        id: plan
+        if: github.event_name == 'pull_request'
+        run: terraform plan -no-color -input=false
+        continue-on-error: true
+        working-directory: envs/dev
+
+      - name: Update Pull Request
+        uses: actions/github-script@v6
+        if: github.event_name == 'pull_request'
+        env:
+          PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const output = `#### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
+            #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
+            #### Terraform Validation 🤖\`${{ steps.validate.outcome }}\`
+            #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
+            <details><summary>Show Plan</summary>
+            \`\`\`\n
+            ${process.env.PLAN}
+            \`\`\`
+            </details>
+            *Pushed by: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            })
+
+      - name: Terraform Plan Status
+        if: steps.plan.outcome == 'failure'
+        run: exit 1
+        working-directory: envs/dev
+
+      - name: Terraform Apply
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          terraform apply -auto-approve -input=false
+        working-directory: envs/dev
