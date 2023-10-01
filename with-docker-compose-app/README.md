@@ -32,6 +32,8 @@ export REPOSITORY_URL=<repository_url>
 
 ### ビルド
 ```
+cd next-app && npm install
+cd ..
 docker compose -f docker-compose.prod.yml build
 docker images
 ```
