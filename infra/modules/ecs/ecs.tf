@@ -197,24 +197,3 @@ resource "aws_security_group_rule" "ecs_from_alb" {
   type                     = "ingress"
   source_security_group_id = var.alb_sg_id
 }*/
-
-####################################################
-# Systems Manger Parameter Store
-####################################################
-data "aws_ssm_parameter" "image_name" {
-  name = "/${var.service}/image_name"
-}
-
-
-/*
-resource "aws_ssm_parameter" "image_name" {
-  name  = "/${var.service}/image_name"
-  type  = "String"
-  value = "${data.aws_caller_identity.self.account_id}.dkr.ecr.ap-northeast-1.amazonaws.com/${var.service}:v0.1"
-
-  # value が変更されても Terraform で差分が発生しない
-  lifecycle {
-    ignore_changes = [value]
-  }
-}*/
-

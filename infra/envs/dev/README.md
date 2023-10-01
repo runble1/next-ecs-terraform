@@ -6,15 +6,15 @@ Github Actions -> AWS Fargate
 ## Usage
 実行
 ```
-aws-vault exec sample
+aws-vault exec test
 terraform apply
-（aws-vault exec sample -- terraform apply）
+（aws-vault exec test -- terraform apply）
 ```
 
 ## Setting
 aws-vaultへ追加
 ```
-aws-vault add sample
+aws-vault add test
 aws-vault list
 ```
 

@@ -1,14 +1,13 @@
 # Next.js + ECS Fargate
 
-## Install
-### Github Code Scanning
-有効化
+## セキュリティチェック
 ```
-Settings > Security > Code security and analysis > Code scanning > Set up > Default
+Dockle : 
+git-secrets : 
+Trivy : 
 ```
-CodeQL Analysis が完了すること
 
-## Usage
+## repository
 ### .github
 何かする用の Github Actions
 
