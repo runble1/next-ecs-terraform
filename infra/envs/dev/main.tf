@@ -23,6 +23,11 @@ module "alb" {
   subnet_1c_id = module.network.subnet_public_1c_id
 }
 
+module "ssm" {
+  source  = "../../modules/ssm"
+  service      = local.service
+}
+
 module "ecs" {
   source               = "../../modules/ecs"
   env                  = var.env

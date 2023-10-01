@@ -1,6 +1,9 @@
 # Next.js + ECS Fargate
 
 ## Development
+### 準備
+Rancher Descktop起動
+
 ### ローカル開発
 Build
 ```
@@ -21,11 +24,9 @@ docker exec -it nextjs-docker-next-1 sh
 docker compose down
 ```
 
-
 ### レジストリへイメージ登録
 ```
-cd nextjs-docker
-aws-vault exec jitsudan
+aws-vault exec test
 AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query 'Account' --output text)
 GIT_COMMIT_ID=$(git log --format="%H" -n 1)
 docker image build -t nextjs-docker:"${GIT_COMMIT_ID}" .
@@ -42,13 +43,13 @@ pip install git-remote-codecommit
 
 clone
 ```
-aws-vault exec jitsudan
+aws-vault exec test
 git clone codecommit::ap-northeast-1://next-docker
 ```
 
 push
 ```
-aws-vault exec jitsudan
+aws-vault exec test
 git push
 ```
 
