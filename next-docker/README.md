@@ -4,8 +4,7 @@
 ### 準備
 Rancher Descktop起動
 
-### ローカル開発
-Build
+### Build
 ```
 docker build -t nextjs-docker .
 docker run -p 3000:3000 nextjs-docker

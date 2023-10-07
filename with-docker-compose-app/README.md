@@ -30,7 +30,7 @@ export GIT_COMMIT_ID=$(git rev-parse HEAD)
 export REPOSITORY_URL=<repository_url>
 ```
 
-### ビルド
+### ビルド(prod)
 ```
 cd next-app && npm install
 cd ..
