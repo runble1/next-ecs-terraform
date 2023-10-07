@@ -28,6 +28,7 @@ aws-vault exec test
 AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query 'Account' --output text)
 export GIT_COMMIT_ID=$(git rev-parse HEAD)
 export REPOSITORY_URL=<repository_url>
+aws ecr --region ap-northeast-1 get-login-password | docker login --username AWS --password-stdin https://${AWS_ACCOUNT_ID}.dkr.ecr.ap-northeast-1.amazonaws.com/
 ```
 
 ### ビルド(prod)
