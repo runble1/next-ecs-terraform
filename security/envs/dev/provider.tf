@@ -11,7 +11,7 @@ provider "aws" {
 terraform {
   required_version = ">= 1.3.8"
   required_providers {
-    aws = "5.17.0"
+    aws = "5.20.0"
   }
   backend "s3" {
     region  = "ap-northeast-1"
