@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - "next-docker/**"
+      - "with-docker-compose-app/**"
   workflow_dispatch:
 
 env:
