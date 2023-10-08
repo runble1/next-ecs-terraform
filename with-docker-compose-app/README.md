@@ -39,7 +39,7 @@ docker compose -f docker-compose.prod.yml build
 docker images
 ```
 
-### イメージをプッシュ
+### イメージをECRへプッシュ
 ```
 docker compose -f docker-compose.prod.yml push
 ```
