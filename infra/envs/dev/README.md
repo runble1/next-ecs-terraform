@@ -1,37 +1,60 @@
 # aws-vault + Terraform
 
-## Architect
-Github Actions -> AWS Fargate
 
-## Usage
-実行
+## Deploy
+aws-vault
 ```
 aws-vault exec test
+terraform init
 terraform apply
-（aws-vault exec test -- terraform apply）
 ```
 
-## Setting
-aws-vaultへ追加
+aws-vualt + Docker
 ```
-aws-vault add test
-aws-vault list
-```
-
-configに設定追加
-```
-[profile sample]
-region=ap-northeast-1
-output=json
-mfa_serial=arn:aws:iam::1111222233:mfa/sample
+aws-vault exec test
+docker compose up
+docker compose run --rm terraform init
 ```
 
-確認
+### 1. コンテナレジストリとコードリポジトリ作成
 ```
-aws-vault exec sample -- env | grep AWS_
+terraform apply -target=module.ecr
 ```
 
-解除（名前空間を抜ける）
+### 1.5
+ECRへイメージプッシュ
+
+### 2 Network
 ```
-exit
+terraform apply -target=module.network
 ```
+
+### 3 ALB
+```
+terraform apply --target=module.alb
+```
+
+### 4 SSM
+tagを最初だけ手打ち
+```
+terraform apply --target=module.ssm
+```
+
+### 5 ECS
+```
+terraform apply --target=module.ecs2
+```
+
+### 6 ローカルからecspressoでデプロイ
+task-definition.json の
+```
+
+```
+
+### 7 Github Actions でデプロイ
+- タスク定義が更新された場合（Terraform）
+- アプリが更新された場合（Github Actions）
+
+## 9 Destroy
+ECRのimageを手動で削除
+terraform destroy
