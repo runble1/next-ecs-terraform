@@ -28,7 +28,7 @@ docker compose -f docker-compose.dev.yml down
 ```
 aws-vault exec test
 AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query 'Account' --output text)
-export REPOSITORY_URL=404307571516.dkr.ecr.ap-northeast-1.amazonaws.com/nextjs-github
+export REPOSITORY_URL=404307571516.dkr.ecr.ap-northeast-1.amazonaws.com/nextjs
 aws ecr --region ap-northeast-1 get-login-password | docker login --username AWS --password-stdin https://${AWS_ACCOUNT_ID}.dkr.ecr.ap-northeast-1.amazonaws.com/
 ```
 

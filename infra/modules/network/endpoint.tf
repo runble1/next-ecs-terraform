@@ -203,17 +203,23 @@ resource "aws_security_group" "vpc_endpoint" {
 
   ingress {
     description = "HTTPS from VPC"
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = [aws_vpc.main.cidr_block]
+    #from_port   = 443
+    #to_port     = 443
+    from_port = 0
+    to_port   = 0
+    protocol  = "tcp"
+    #cidr_blocks = [aws_vpc.main.cidr_block]
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   egress {
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = [aws_vpc.main.cidr_block] #絞るとAWSサービスへアクセスできない？
+    #from_port   = 443
+    #to_port     = 443
+    from_port = 0
+    to_port   = 0
+    protocol  = "tcp"
+    #cidr_blocks = [aws_vpc.main.cidr_block] #絞るとAWSサービスへアクセスできない？
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   tags = {

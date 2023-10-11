@@ -1,0 +1,10 @@
+region: ap-northeast-1  # AWSリージョン
+cluster: nextjs-cluster  # ECSクラスター名
+service: nextjs-service  # ECSサービス名
+service_definition: ecs-service-def.json
+task_definition: ecs-task-def.json
+timeout: "10m0s"
+plugins:
+  - name: tfstate
+    config:
+      url: s3://runble1-tfstate/next-ecs-terraform/infra/terraform.tfstate

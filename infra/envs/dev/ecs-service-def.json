@@ -1,0 +1,51 @@
+{
+  "deploymentConfiguration": {
+    "deploymentCircuitBreaker": {
+      "enable": true,
+      "rollback": true
+    },
+    "maximumPercent": 200,
+    "minimumHealthyPercent": 100
+  },
+  "deploymentController": {
+    "type": "ECS"
+  },
+  "desiredCount": 1,
+  "enableECSManagedTags": false,
+  "enableExecuteCommand": false,
+  "healthCheckGracePeriodSeconds": 0,
+  "launchType": "FARGATE",
+  "loadBalancers": [
+    {
+      "containerName": "nextjs-task",
+      "containerPort": 3000,
+      "targetGroupArn": "{{ or (env `TARGET_GROUP_ARN` ``) (tfstate `module.alb.aws_lb_target_group.for_webserver.arn`) }}"
+    }
+  ],
+  "networkConfiguration": {
+    "awsvpcConfiguration": {
+      "assignPublicIp": "DISABLED",
+      "securityGroups": [
+        "{{ or (env `SECURITY_GROUP_ID` ``) (tfstate `module.ecs2.aws_security_group.ecs.id`) }}"
+      ],
+      "subnets": [
+        "{{ or (env `SUBNET_1A_ID` ``) (tfstate `module.network.aws_subnet.private_1a.id`) }}",
+        "{{ or (env `SUBNET_1C_ID` ``) (tfstate `module.network.aws_subnet.private_1c.id`) }}"
+      ]
+    }
+  },
+  "platformFamily": "Linux",
+  "platformVersion": "1.4.0",
+  "propagateTags": "NONE",
+  "schedulingStrategy": "REPLICA",
+  "tags": [
+    {
+      "key": "Env",
+      "value": "dev"
+    },
+    {
+      "key": "System",
+      "value": "nextjs-github"
+    }
+  ]
+}

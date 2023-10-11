@@ -11,8 +11,8 @@ resource "aws_lb" "for_webserver" {
   ]
 
   subnets = [
-    var.subnet_1a_id,
-    var.subnet_1c_id
+    var.subnet_public_1a_id,
+    var.subnet_public_1c_id
   ]
 
   drop_invalid_header_fields = true
@@ -43,7 +43,7 @@ resource "aws_lb_target_group" "for_webserver" {
   }
 
   tags = {
-    Name = "${var.env}-${var.service}-ig"
+    Name = "${var.env}-${var.service}-tg"
   }
 }
 
@@ -107,110 +107,4 @@ resource "aws_security_group_rule" "alb_http" {
   security_group_id = aws_security_group.alb.id
   type              = "ingress"
   cidr_blocks       = ["0.0.0.0/0"]
-}
-
-resource "aws_security_group" "alb50" {
-  name   = "${var.env}-${var.service}-alb50-sg"
-  vpc_id = var.vpc_id
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = {
-    Name = "${var.env}-${var.service}-alb50-sg"
-  }
-}
-
-resource "aws_security_group" "alb51" {
-  name   = "${var.env}-${var.service}-alb51-sg"
-  vpc_id = var.vpc_id
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = {
-    Name = "${var.env}-${var.service}-alb51-sg"
-  }
-}
-
-resource "aws_security_group" "alb52" {
-  name   = "${var.env}-${var.service}-alb52-sg"
-  vpc_id = var.vpc_id
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = {
-    Name = "${var.env}-${var.service}-alb52-sg"
-  }
-}
-
-resource "aws_security_group" "alb53" {
-  name   = "${var.env}-${var.service}-alb53-sg"
-  vpc_id = var.vpc_id
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = {
-    Name = "${var.env}-${var.service}-alb53-sg"
-  }
-}
-
-resource "aws_security_group" "alb54" {
-  name   = "${var.env}-${var.service}-alb54-sg"
-  vpc_id = var.vpc_id
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = {
-    Name = "${var.env}-${var.service}-alb54-sg"
-  }
-}
-
-resource "aws_security_group" "alb55" {
-  name   = "${var.env}-${var.service}-alb55-sg"
-  vpc_id = var.vpc_id
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = {
-    Name = "${var.env}-${var.service}-alb55-sg"
-  }
-}
-
-
-resource "aws_security_group" "alb56" {
-  name   = "${var.env}-${var.service}-alb56-sg"
-  vpc_id = var.vpc_id
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = {
-    Name = "${var.env}-${var.service}-alb56-sg"
-  }
 }

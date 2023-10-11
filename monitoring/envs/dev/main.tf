@@ -3,8 +3,8 @@ locals {
 }
 
 module "cloudwatch" {
-  source = "../../modules/cloudwatch"
-  service   = local.service
+  source  = "../../modules/cloudwatch"
+  service = local.service
 }
 
 /*

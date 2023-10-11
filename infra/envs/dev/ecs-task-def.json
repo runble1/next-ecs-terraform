@@ -1,0 +1,62 @@
+{
+  "containerDefinitions": [
+    {
+      "cpu": 256,
+      "essential": true,
+      "healthCheck": {
+        "command": [
+          "CMD-SHELL",
+          "wget -q -O - http://localhost:3000/api/healthcheck || exit 1"
+        ],
+        "interval": 5,
+        "retries": 3,
+        "startPeriod": 60,
+        "timeout": 5
+      },
+      "image": "404307571516.dkr.ecr.ap-northeast-1.amazonaws.com/nextjs:e61831eb7a41d98e79b03ce3bb2ecf28ed097a59",
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/nextjs-github",
+          "awslogs-region": "ap-northeast-1",
+          "awslogs-stream-prefix": "ecs"
+        }
+      },
+      "memory": 512,
+      "name": "nextjs-task",
+      "portMappings": [
+        {
+          "appProtocol": "",
+          "containerPort": 3000,
+          "hostPort": 3000,
+          "protocol": "tcp"
+        }
+      ]
+    }
+  ],
+  "cpu": "256",
+  "taskRoleArn": "{{ or (env `EXECUTION_ROLE_ARN` ``) (tfstate `module.ecs2.aws_iam_role.ecs_task_execution_role.arn`) }}",
+  "executionRoleArn": "{{ or (env `EXECUTION_ROLE_ARN` ``) (tfstate `module.ecs2.aws_iam_role.ecs_task_execution_role.arn`) }}",
+  "family": "nextjs-github-task-definition",
+  "ipcMode": "",
+  "memory": "512",
+  "networkMode": "awsvpc",
+  "pidMode": "",
+  "requiresCompatibilities": [
+    "FARGATE"
+  ],
+  "runtimePlatform": {
+    "cpuArchitecture": "ARM64",
+    "operatingSystemFamily": "LINUX"
+  },
+  "tags": [
+    {
+      "key": "Env",
+      "value": "dev"
+    },
+    {
+      "key": "System",
+      "value": "nextjs-github"
+    }
+  ]
+}

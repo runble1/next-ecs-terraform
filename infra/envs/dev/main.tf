@@ -1,5 +1,5 @@
 locals {
-  service = "nextjs-github"
+  service = "nextjs"
 }
 
 module "ecr" {
@@ -15,28 +15,26 @@ module "network" {
 }
 
 module "alb" {
-  source       = "../../modules/alb"
-  env          = var.env
-  service      = local.service
-  vpc_id       = module.network.vpc_id
-  subnet_1a_id = module.network.subnet_public_1a_id
-  subnet_1c_id = module.network.subnet_public_1c_id
+  source              = "../../modules/alb"
+  env                 = var.env
+  service             = local.service
+  vpc_id              = module.network.vpc_id
+  subnet_public_1a_id = module.network.subnet_public_1a_id
+  subnet_public_1c_id = module.network.subnet_public_1c_id
 }
 
-module "ssm" {
-  source  = "../../modules/ssm"
-  service      = local.service
+module "cloudwatch" {
+  source  = "../../modules/cloudwatch"
+  service = local.service
 }
 
-module "ecs" {
-  source               = "../../modules/ecs"
+module "ecs2" {
+  source               = "../../modules/ecs2"
   env                  = var.env
   service              = local.service
-  cluster_name         = local.service
-  container_name       = local.service
   vpc_id               = module.network.vpc_id
-  subnet_1a_id         = module.network.subnet_private_1a_id
-  subnet_1c_id         = module.network.subnet_private_1c_id
+  subnet_private_1a_id = module.network.subnet_private_1a_id
+  subnet_private_1c_id = module.network.subnet_private_1c_id
   alb_target_group_arn = module.alb.target_group_arn
   alb_sg_id            = module.alb.alb_sg_id
 }
