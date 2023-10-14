@@ -46,9 +46,13 @@ terraform apply --target=module.ecs2
 ```
 
 ### 6 ローカルからecspressoでデプロイ
-task-definition.json の
+デプロイ
 ```
-
+ecspresso deploy --config ecspresso.yml
+```
+リスト確認
+```
+terraform state list
 ```
 
 ### 7 Github Actions でデプロイ
