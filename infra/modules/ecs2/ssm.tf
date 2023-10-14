@@ -3,7 +3,7 @@ resource "aws_ssm_parameter" "image_name" {
   type = "String"
 
   # ここを自動化したい
-  value = "${data.aws_caller_identity.self.account_id}.dkr.ecr.ap-northeast-1.amazonaws.com/${var.service}:e61831eb7a41d98e79b03ce3bb2ecf28ed097a59"
+  value = "${data.aws_caller_identity.self.account_id}.dkr.ecr.ap-northeast-1.amazonaws.com/nextjs:49bd98bea71dd4a6a04a23a1e8cf5e14a8ed990b"
 
   # value が変更されても Terraform で差分が発生しない
   #lifecycle {

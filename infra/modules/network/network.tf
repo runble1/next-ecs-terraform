@@ -104,7 +104,7 @@ resource "aws_route_table_association" "public_1c" {
 # ====================
 # Route Table Private
 # ====================
-# aws route の設定は vpc endpointに
+# ※ aws_routeの設定はendpoint.tfに記載
 resource "aws_route_table" "private_1a" {
   vpc_id = aws_vpc.main.id
   tags = {

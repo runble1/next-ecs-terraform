@@ -1,6 +1,22 @@
 ########
 # S3 (Dockerイメージの取得)
 ########
+resource "aws_vpc_endpoint" "s3_endpoint" {
+  vpc_endpoint_type = "Gateway"
+  service_name = "com.amazonaws.ap-northeast-1.s3"
+  vpc_id       = aws_vpc.main.id
+
+  route_table_ids = [
+    aws_route_table.private_1a.id,
+    aws_route_table.private_1c.id
+  ]
+
+  tags = {
+    Environment = "${var.env}-${var.service}-s3endpoint"
+  }
+}
+
+# イメージ保管用のS3バケット
 resource "aws_s3_bucket" "default" {
   bucket = "${var.env}-${var.service}-${data.aws_caller_identity.self.account_id}"
 }
@@ -24,44 +40,19 @@ resource "aws_s3_bucket_lifecycle_configuration" "default" {
   bucket = aws_s3_bucket.default.id
 }
 
-resource "aws_vpc_endpoint" "s3_endpoint" {
-  vpc_id       = aws_vpc.main.id
-  service_name = "com.amazonaws.${data.aws_region.self.name}.s3"
-  policy = jsonencode({
-    Version : "2012-10-17",
-    Statement : [
-      {
-        Action : ["*"], #S3に絞る
-        Effect : "Allow",
-        Resource : "*",
-        Principal : "*"
-      }
-    ]
-  })
-
-  tags = {
-    Environment = "${var.env}-${var.service}-s3endpoint"
-  }
-}
-
-resource "aws_vpc_endpoint_route_table_association" "private_1a_s3" {
-  vpc_endpoint_id = aws_vpc_endpoint.s3_endpoint.id
-  route_table_id  = aws_route_table.private_1a.id
-}
-
-resource "aws_vpc_endpoint_route_table_association" "private_1c_s3" {
-  vpc_endpoint_id = aws_vpc_endpoint.s3_endpoint.id
-  route_table_id  = aws_route_table.private_1c.id
-}
-
 ########
 # ecr api (aws ecr get-login-password) 
 ########
 resource "aws_vpc_endpoint" "ecr_api" {
   vpc_id              = aws_vpc.main.id
-  service_name        = "com.amazonaws.${data.aws_region.self.name}.ecr.api"
+  service_name        = "com.amazonaws.ap-northeast-1.ecr.api"
   vpc_endpoint_type   = "Interface"
   private_dns_enabled = true
+
+  subnet_ids = [
+    aws_subnet.private_1a.id,
+    aws_subnet.private_1c.id
+  ]
 
   security_group_ids = [
     aws_security_group.vpc_endpoint.id,
@@ -70,16 +61,6 @@ resource "aws_vpc_endpoint" "ecr_api" {
   tags = {
     Environment = "${var.env}-${var.service}-ecr.api.endpoint"
   }
-}
-
-resource "aws_vpc_endpoint_subnet_association" "ecr_api_private_1a" {
-  vpc_endpoint_id = aws_vpc_endpoint.ecr_api.id
-  subnet_id       = aws_subnet.private_1a.id
-}
-
-resource "aws_vpc_endpoint_subnet_association" "ecr_api_private_1c" {
-  vpc_endpoint_id = aws_vpc_endpoint.ecr_api.id
-  subnet_id       = aws_subnet.private_1c.id
 }
 
 ########
@@ -91,6 +72,11 @@ resource "aws_vpc_endpoint" "ecr_dkr" {
   vpc_endpoint_type   = "Interface"
   private_dns_enabled = true
 
+  subnet_ids = [
+    aws_subnet.private_1a.id,
+    aws_subnet.private_1c.id
+  ]
+
   security_group_ids = [
     aws_security_group.vpc_endpoint.id,
   ]
@@ -100,22 +86,12 @@ resource "aws_vpc_endpoint" "ecr_dkr" {
   }
 }
 
-resource "aws_vpc_endpoint_subnet_association" "ecr_dkr_private_1a" {
-  vpc_endpoint_id = aws_vpc_endpoint.ecr_dkr.id
-  subnet_id       = aws_subnet.private_1a.id
-}
-
-resource "aws_vpc_endpoint_subnet_association" "ecr_dkr_private_1c" {
-  vpc_endpoint_id = aws_vpc_endpoint.ecr_dkr.id
-  subnet_id       = aws_subnet.private_1c.id
-}
-
 ########
 # cloudwatch
 ########
 resource "aws_vpc_endpoint" "logs" {
   vpc_id              = aws_vpc.main.id
-  service_name        = "com.amazonaws.${data.aws_region.self.name}.logs"
+  service_name        = "com.amazonaws.ap-northeast-1.logs"
   vpc_endpoint_type   = "Interface"
   private_dns_enabled = true
 
@@ -143,7 +119,7 @@ resource "aws_vpc_endpoint_subnet_association" "logs_private_1c" {
 ########
 resource "aws_vpc_endpoint" "secretsmanager" {
   vpc_id              = aws_vpc.main.id
-  service_name        = "com.amazonaws.${data.aws_region.self.name}.secretsmanager"
+  service_name        = "com.amazonaws.ap-northeast-1.secretsmanager"
   vpc_endpoint_type   = "Interface"
   private_dns_enabled = true
 
@@ -171,7 +147,7 @@ resource "aws_vpc_endpoint_subnet_association" "secretsmanager_private_1c" {
 ########
 resource "aws_vpc_endpoint" "ssm" {
   vpc_id              = aws_vpc.main.id
-  service_name        = "com.amazonaws.${data.aws_region.self.name}.ssm"
+  service_name        = "com.amazonaws.ap-northeast-1.ssm"
   vpc_endpoint_type   = "Interface"
   private_dns_enabled = true
 
@@ -202,23 +178,16 @@ resource "aws_security_group" "vpc_endpoint" {
   vpc_id = aws_vpc.main.id
 
   ingress {
-    description = "HTTPS from VPC"
-    #from_port   = 443
-    #to_port     = 443
-    from_port = 0
-    to_port   = 0
-    protocol  = "tcp"
-    #cidr_blocks = [aws_vpc.main.cidr_block]
-    cidr_blocks = ["0.0.0.0/0"]
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = [aws_vpc.main.cidr_block]
   }
 
   egress {
-    #from_port   = 443
-    #to_port     = 443
-    from_port = 0
-    to_port   = 0
-    protocol  = "tcp"
-    #cidr_blocks = [aws_vpc.main.cidr_block] #絞るとAWSサービスへアクセスできない？
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1" #念のため
     cidr_blocks = ["0.0.0.0/0"]
   }
 

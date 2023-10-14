@@ -25,6 +25,7 @@ resource "null_resource" "ecspresso" {
   }
 }
 
+/*
 data "aws_ecs_service" "oneshot" {
   cluster_arn  = aws_ecs_cluster.cluster.name
   service_name = var.service
@@ -39,4 +40,4 @@ resource "aws_appautoscaling_target" "nginx" {
   resource_id        = "service/${aws_ecs_cluster.oneshot.name}/${data.aws_ecs_service.oneshot.service_name}"
   scalable_dimension = "ecs:service:DesiredCount"
   service_namespace  = "ecs"
-}
+}*/

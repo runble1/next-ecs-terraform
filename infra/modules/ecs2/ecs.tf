@@ -51,43 +51,6 @@ resource "aws_iam_role_policy_attachment" "ecs_container_registry_read_only" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
 }
 
-resource "aws_iam_role_policy_attachment" "ecr_full_access" {
-  role       = aws_iam_role.ecs_task_execution_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryFullAccess"
-}
-
-/*
-resource "aws_iam_role_policy" "ecs_task_execution" {
-  name = "${var.service}-task-execution-policy"
-  role = aws_iam_role.ecs_task_execution_role.id
-
-  policy = jsonencode({
-    Version : "2012-10-17",
-    Statement : [
-      {
-        "Effect" : "Allow",
-        "Action" : [
-          "*",
-          "ecr:GetAuthorizationToken",
-          "ecr:BatchCheckLayerAvailability",
-          "ecr:GetDownloadUrlForLayer",
-          "ecr:GetRepositoryPolicy",
-          "ecr:DescribeRepositories",
-          "ecr:ListImages",
-          "ecr:DescribeImages",
-          "ecr:BatchGetImage",
-          "ecr:GetLifecyclePolicy",
-          "ecr:GetLifecyclePolicyPreview",
-          "ecr:ListTagsForResource",
-          "ecr:DescribeImageScanFindings",
-        ],
-        "Resource" : "*"
-      }
-    ]
-  })
-}
-*/
-
 ####################################################
 # SG ALB -> ECS
 ####################################################
@@ -108,7 +71,6 @@ resource "aws_security_group" "ecs" {
   }
 }
 
-/*
 resource "aws_security_group_rule" "ecs_from_alb" {
   from_port                = 3000
   to_port                  = 3000
@@ -116,15 +78,4 @@ resource "aws_security_group_rule" "ecs_from_alb" {
   security_group_id        = aws_security_group.ecs.id
   type                     = "ingress"
   source_security_group_id = var.alb_sg_id
-}
-*/
-
-resource "aws_security_group_rule" "ecs_from_alb" {
-  from_port         = 0
-  to_port           = 0
-  protocol          = "-1"
-  security_group_id = aws_security_group.ecs.id
-  type              = "ingress"
-  #source_security_group_id = var.alb_sg_id
-  cidr_blocks = ["0.0.0.0/0"]
 }
