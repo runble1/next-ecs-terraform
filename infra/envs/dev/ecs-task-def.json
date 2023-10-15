@@ -13,6 +13,9 @@
         "startPeriod": 60,
         "timeout": 5
       },
+      "linuxParameters": {
+        "initProcessEnabled": true
+      },
       "image": "{{ or (env `IMAGE_URL` ``) (tfstate `module.ecs2.aws_ssm_parameter.image_url.value`) }}",
       "logConfiguration": {
         "logDriver": "awslogs",
