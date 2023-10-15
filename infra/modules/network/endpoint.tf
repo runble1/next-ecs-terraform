@@ -95,6 +95,11 @@ resource "aws_vpc_endpoint" "logs" {
   vpc_endpoint_type   = "Interface"
   private_dns_enabled = true
 
+  subnet_ids = [
+    aws_subnet.private_1a.id,
+    aws_subnet.private_1c.id
+  ]
+
   security_group_ids = [
     aws_security_group.vpc_endpoint.id,
   ]
@@ -104,24 +109,19 @@ resource "aws_vpc_endpoint" "logs" {
   }
 }
 
-resource "aws_vpc_endpoint_subnet_association" "logs_private_1a" {
-  vpc_endpoint_id = aws_vpc_endpoint.logs.id
-  subnet_id       = aws_subnet.private_1a.id
-}
-
-resource "aws_vpc_endpoint_subnet_association" "logs_private_1c" {
-  vpc_endpoint_id = aws_vpc_endpoint.logs.id
-  subnet_id       = aws_subnet.private_1c.id
-}
-
 ########
 # Secrets Manager
 ########
 resource "aws_vpc_endpoint" "secretsmanager" {
-  vpc_id              = aws_vpc.main.id
-  service_name        = "com.amazonaws.ap-northeast-1.secretsmanager"
   vpc_endpoint_type   = "Interface"
+  service_name        = "com.amazonaws.ap-northeast-1.secretsmanager"
+  vpc_id              = aws_vpc.main.id
   private_dns_enabled = true
+
+  subnet_ids = [
+    aws_subnet.private_1a.id,
+    aws_subnet.private_1c.id
+  ]
 
   security_group_ids = [
     aws_security_group.vpc_endpoint.id,
@@ -132,24 +132,20 @@ resource "aws_vpc_endpoint" "secretsmanager" {
   }
 }
 
-resource "aws_vpc_endpoint_subnet_association" "secretsmanager_private_1a" {
-  vpc_endpoint_id = aws_vpc_endpoint.secretsmanager.id
-  subnet_id       = aws_subnet.private_1a.id
-}
-
-resource "aws_vpc_endpoint_subnet_association" "secretsmanager_private_1c" {
-  vpc_endpoint_id = aws_vpc_endpoint.secretsmanager.id
-  subnet_id       = aws_subnet.private_1c.id
-}
-
 ########
 # SSM for Parameter Store
 ########
 resource "aws_vpc_endpoint" "ssm" {
-  vpc_id              = aws_vpc.main.id
-  service_name        = "com.amazonaws.ap-northeast-1.ssm"
   vpc_endpoint_type   = "Interface"
+  service_name      = "com.amazonaws.ap-northeast-1.ssm"
+  vpc_id              = aws_vpc.main.id
+
   private_dns_enabled = true
+
+  subnet_ids = [
+    aws_subnet.private_1a.id,
+    aws_subnet.private_1c.id
+  ]
 
   security_group_ids = [
     aws_security_group.vpc_endpoint.id,
@@ -160,14 +156,26 @@ resource "aws_vpc_endpoint" "ssm" {
   }
 }
 
-resource "aws_vpc_endpoint_subnet_association" "ssm_private_1a" {
-  vpc_endpoint_id = aws_vpc_endpoint.ssm.id
-  subnet_id       = aws_subnet.private_1a.id
-}
+# ECS Exec
+resource "aws_vpc_endpoint" "ssmmessages" {
+  vpc_endpoint_type   = "Interface"
+  service_name      = "com.amazonaws.ap-northeast-1.ssmmessages"
+  vpc_id              = aws_vpc.main.id
 
-resource "aws_vpc_endpoint_subnet_association" "ssm_private_1c" {
-  vpc_endpoint_id = aws_vpc_endpoint.ssm.id
-  subnet_id       = aws_subnet.private_1c.id
+  private_dns_enabled = true
+
+  subnet_ids = [
+    aws_subnet.private_1a.id,
+    aws_subnet.private_1c.id
+  ]
+
+  security_group_ids = [
+    aws_security_group.vpc_endpoint.id,
+  ]
+
+  tags = {
+    Environment = "${var.env}-${var.service}-ssmmessages.endpoint"
+  }
 }
 
 #########################

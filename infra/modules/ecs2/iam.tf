@@ -25,16 +25,6 @@ resource "aws_iam_role_policy_attachment" "ecs_container_registry_read_only" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
 }
 
-# ※cloudwatchログ送付の検証用
-resource "aws_iam_role_policy_attachment" "admin" {
-  role       = aws_iam_role.ecs_task_execution_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
-}
-resource "aws_iam_role_policy_attachment" "admin2" {
-  role       = aws_iam_role.ecs_task_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
-}
-
 # タスクロール
 resource "aws_iam_role" "ecs_task_role" {
   name = "${var.service}-ecs-task-role"
