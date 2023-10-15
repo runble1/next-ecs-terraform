@@ -3,7 +3,7 @@ provider "aws" {
   default_tags {
     tags = {
       Env    = "dev"
-      System = "nextjs-github"
+      System = "nextjs"
     }
   }
 }

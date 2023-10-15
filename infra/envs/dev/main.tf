@@ -21,6 +21,8 @@ module "alb" {
   vpc_id              = module.network.vpc_id
   subnet_public_1a_id = module.network.subnet_public_1a_id
   subnet_public_1c_id = module.network.subnet_public_1c_id
+  lb_port             = 80
+  app_port            = 3000
 }
 
 module "cloudwatch" {
@@ -37,4 +39,5 @@ module "ecs2" {
   subnet_private_1c_id = module.network.subnet_private_1c_id
   alb_target_group_arn = module.alb.target_group_arn
   alb_sg_id            = module.alb.alb_sg_id
+  app_port             = 3000
 }

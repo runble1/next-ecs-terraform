@@ -1,7 +1,5 @@
 # Next.js with Docker Compose
 
-This example contains everything needed to get a Next.js development and production environment up and running with Docker Compose.
-
 ## ローカル開発
 ### Build
 ```
@@ -28,7 +26,7 @@ docker compose -f docker-compose.dev.yml down
 ```
 aws-vault exec test
 AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query 'Account' --output text)
-export REPOSITORY_URL=404307571516.dkr.ecr.ap-northeast-1.amazonaws.com/nextjs
+export REPOSITORY_URL=${AWS_ACCOUNT_ID}.dkr.ecr.ap-northeast-1.amazonaws.com/nextjs
 aws ecr --region ap-northeast-1 get-login-password | docker login --username AWS --password-stdin https://${AWS_ACCOUNT_ID}.dkr.ecr.ap-northeast-1.amazonaws.com/
 ```
 

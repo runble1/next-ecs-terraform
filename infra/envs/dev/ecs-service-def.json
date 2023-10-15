@@ -12,12 +12,12 @@
   },
   "desiredCount": 1,
   "enableECSManagedTags": false,
-  "enableExecuteCommand": false,
+  "enableExecuteCommand": true,
   "healthCheckGracePeriodSeconds": 0,
   "launchType": "FARGATE",
   "loadBalancers": [
     {
-      "containerName": "nextjs-task",
+      "containerName": "nextjs-container",
       "containerPort": 3000,
       "targetGroupArn": "{{ or (env `TARGET_GROUP_ARN` ``) (tfstate `module.alb.aws_lb_target_group.for_webserver.arn`) }}"
     }
@@ -45,7 +45,7 @@
     },
     {
       "key": "System",
-      "value": "nextjs-github"
+      "value": "nextjs"
     }
   ]
 }
